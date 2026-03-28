@@ -48,4 +48,6 @@ for variant in "${VARIANTS[@]}"; do
   copy_views_proto "$out"
 done
 
-echo "== Done (HEAD left on last built branch; CI does not rely on it) =="
+git checkout -f "$ROOT_REF"
+
+echo "== Done =="
