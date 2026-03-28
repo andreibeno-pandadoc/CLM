@@ -2,11 +2,16 @@
  * Document Type filter values from sheet “v4n” column B (Document Type).
  * Per-view groupings follow “Nav proposal” column B (Document types included).
  *
+ * **views-2 branch:** Service Agreement merged into Contracts; Quotes + Invoices
+ * document types merged into Proposals (separate Views removed from nav).
+ *
  * v4n: https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=839752090
  * Nav proposal: https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=586991472
  */
 
-/** Contracts: All Agreement subtypes except Service Agreement & Non-Disclosure Agreement (Nav B2). */
+const uniq = (items) => [...new Set(items)];
+
+/** Contracts: Agreement subtypes except NDA; plus Service Agreement (merged from Service agreements view). */
 const AGREEMENT_SUBTYPES_EXCEPT_SERVICE_AND_NDA = [
   'Statement of Work',
   'Amendment Agreement',
@@ -53,7 +58,7 @@ const AGREEMENT_SUBTYPES_EXCEPT_SERVICE_AND_NDA = [
   'Agreement',
 ];
 
-/** Proposals — All Proposal subtypes (Nav B4); v4n under General Type “Proposal” */
+/** Proposals — v4n Proposal general type */
 const PROPOSAL_SUBTYPES = [
   'Sales Proposal',
   'Project Proposal',
@@ -67,12 +72,10 @@ const PROPOSAL_SUBTYPES = [
   'Proposal',
 ];
 
-/**
- * Quotes — Nav B5: Quote, Sales Order, Form, Order Form (v4n: Quote B122; Form family B63, B67, B78)
- */
+/** Quotes — merged into Proposals on views-2 */
 const QUOTE_DOC_TYPES = ['Quote', 'Sales Order Form', 'Form', 'Order Form'];
 
-/** Invoices — Nav B7: Invoice, Receipt, Payment Agreement */
+/** Invoices — merged into Proposals on views-2 */
 const INVOICE_TYPES = ['Invoice', 'Receipt', 'Payment Agreement'];
 
 /** Forms — All Form subtypes (Nav B8); v4n General Type “Form” B58–B78 */
@@ -100,14 +103,11 @@ const FORM_SUBTYPES = [
   'Form',
 ];
 
-/** Collaterals — Nav B9; v4n B133–B134 */
 const COLLATERAL_TYPES = ['Certificate & Credential', 'Informational & Promotional Material'];
 
 export const DOCUMENT_TYPE_OPTIONS_BY_VIEW = {
-  contracts: AGREEMENT_SUBTYPES_EXCEPT_SERVICE_AND_NDA,
-  proposals: PROPOSAL_SUBTYPES,
-  quotes: QUOTE_DOC_TYPES,
-  invoices: INVOICE_TYPES,
+  contracts: uniq([...AGREEMENT_SUBTYPES_EXCEPT_SERVICE_AND_NDA, 'Service Agreement']),
+  proposals: uniq([...PROPOSAL_SUBTYPES, ...QUOTE_DOC_TYPES, ...INVOICE_TYPES]),
   forms: FORM_SUBTYPES,
   collaterals: COLLATERAL_TYPES,
 };
