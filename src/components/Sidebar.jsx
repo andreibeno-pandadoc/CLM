@@ -106,6 +106,10 @@ const DoubleChevronRightIcon = ({ className = "w-5 h-5" }) => (
 /** Default visible rows per nav section (Payments… / Views) before More */
 const SECTION_VISIBLE_COUNT = 4;
 
+/** When there are few merged views (e.g. views-2: 5), show all including Collaterals without "More". */
+const viewsVisibleLimit =
+  VIEW_IDS.length <= 5 ? VIEW_IDS.length : SECTION_VISIBLE_COUNT;
+
 const Sidebar = ({ activePage, onPageChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   /** Secondary list (Payments… Dev Center): show only first N until More */
@@ -163,8 +167,8 @@ const Sidebar = ({ activePage, onPageChange }) => {
     ? expandedNavItems
     : expandedNavItems.slice(0, SECTION_VISIBLE_COUNT);
 
-  const viewsHasOverflow = viewItems.length > SECTION_VISIBLE_COUNT;
-  const viewsSlice = expandViewsNav ? viewItems : viewItems.slice(0, SECTION_VISIBLE_COUNT);
+  const viewsHasOverflow = viewItems.length > viewsVisibleLimit;
+  const viewsSlice = expandViewsNav ? viewItems : viewItems.slice(0, viewsVisibleLimit);
 
   const bottomNavItems = [
     { icon: DiscoverIcon, label: 'Discover' },

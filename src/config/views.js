@@ -12,7 +12,7 @@ export { DOCUMENT_TYPE_OPTIONS_BY_VIEW } from './documentTypeOptions';
 
 export const VIEW_CONFIG = {
   contracts: {
-    title: 'Contracts & service agreements',
+    title: 'Contracts',
     ctaLabel: 'Contract',
     filters: [
       'Document Type',
@@ -25,7 +25,7 @@ export const VIEW_CONFIG = {
     iconSrc: viewIcon('contracts'),
   },
   proposals: {
-    title: 'Proposals, quotes & invoices',
+    title: 'Proposals',
     ctaLabel: 'Proposal',
     filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
     filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
