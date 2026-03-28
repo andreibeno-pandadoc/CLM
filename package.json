@@ -3,15 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://andreibeno-pandadoc.github.io/CLM",
   "scripts": {
     "dev": "vite",
     "dev:alt": "vite --port 5173",
     "build": "vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/views-prototype.html')\"",
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview --open /",
+    "preview": "vite preview --open /CLM/",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "repo:push": "bash ../scripts/push-prototype-github.sh",
+    "repo:push": "bash scripts/push-github.sh",
     "install:pduikit": "npm install \"git+ssh://git@gitlab.pandadoc.com/product/libjs-pduikit.next.git\" --save"
   },
   "dependencies": {
