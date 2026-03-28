@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One deployable site: main at /CLM/, branch views-2 at /CLM/views-2/, views-3 at /CLM/views-3/.
+# One deployable site: main at /CLM/, variants at /CLM/views-1/ … /CLM/views-3/.
 # Site root always comes from origin/main (or origin/master); variants from their branches.
 set -euo pipefail
 
@@ -30,7 +30,7 @@ npm ci
 VITE_BASE_PATH=/CLM/ npm run build
 copy_views_proto dist
 
-VARIANTS=(views-2 views-3)
+VARIANTS=(views-1 views-2 views-3)
 
 for variant in "${VARIANTS[@]}"; do
   if ! git show-ref --verify --quiet "refs/remotes/origin/${variant}"; then

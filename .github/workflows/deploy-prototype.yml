@@ -5,7 +5,7 @@ name: Deploy prototype to GitHub Pages
 
 on:
   push:
-    branches: [main, master, views-2, views-3]
+    branches: [main, master, views-1, views-2, views-3]
   workflow_dispatch:
 
 permissions:
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install and build (main + views-2 + views-3 branches)
+      - name: Install and build (main + views-1 + views-2 + views-3 branches)
         run: |
           chmod +x scripts/build-pages-site.sh
           npm run build:pages
