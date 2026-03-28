@@ -10,7 +10,7 @@
     "dev:views-1": "VITE_VIEW_VARIANT=views-1 vite --base /CLM/views-1/",
     "dev:views-2": "VITE_VIEW_VARIANT=views-2 vite --base /CLM/views-2/",
     "dev:views-3": "VITE_VIEW_VARIANT=views-3 vite --base /CLM/views-3/",
-    "build": "VITE_VIEW_VARIANT=main vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/views-prototype.html')\"",
+    "build": "vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/views-prototype.html')\"",
     "build:views-1": "VITE_VIEW_VARIANT=views-1 VITE_BASE_PATH=/CLM/views-1/ vite build --outDir dist/views-1 && node -e \"require('fs').copyFileSync('dist/views-1/index.html','dist/views-1/views-prototype.html')\"",
     "build:views-2": "VITE_VIEW_VARIANT=views-2 VITE_BASE_PATH=/CLM/views-2/ vite build --outDir dist/views-2 && node -e \"require('fs').copyFileSync('dist/views-2/index.html','dist/views-2/views-prototype.html')\"",
     "build:views-3": "VITE_VIEW_VARIANT=views-3 VITE_BASE_PATH=/CLM/views-3/ vite build --outDir dist/views-3 && node -e \"require('fs').copyFileSync('dist/views-3/index.html','dist/views-3/views-prototype.html')\"",

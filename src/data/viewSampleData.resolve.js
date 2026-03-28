@@ -1,13 +1,32 @@
 /**
- * Single source of sample rows for all branches: set `VITE_VIEW_VARIANT` at build/dev time.
- * - main, views-1: full document-type nav (contracts … collaterals)
+ * Single source of sample rows for all branches.
+ *
+ * Variant selection (first match wins):
+ * 1. `import.meta.env.BASE_URL` — Vite embeds `base` (e.g. /CLM/views-3/). Prefer this for
+ *    production so the sample data always matches the deployed subpath.
+ * 2. `VITE_VIEW_VARIANT` — used when `base` is `/` (local dev) or for explicit overrides.
+ *
+ * - main: full document-type nav (contracts … collaterals)
+ * - views-1: same data as main
  * - views-2: merged contracts + service agreements; proposals + quotes + invoices
  * - views-3: team-based nav (sales … procurement)
  */
 import { VIEW_SAMPLE_DATA_MAIN, VIEW_SAMPLE_DATA_TEAM } from './viewSampleData.catalog';
 import { buildViews2Dataset } from './viewSampleData.mergeViews2';
 
-const VARIANT = import.meta.env.VITE_VIEW_VARIANT || 'main';
+function detectViewVariant() {
+  const base = import.meta.env.BASE_URL || '';
+  if (base.includes('views-3')) return 'views-3';
+  if (base.includes('views-2')) return 'views-2';
+  if (base.includes('views-1')) return 'views-1';
+  const explicit = import.meta.env.VITE_VIEW_VARIANT;
+  if (explicit != null && String(explicit).trim() !== '') {
+    return String(explicit).trim();
+  }
+  return 'main';
+}
+
+const VARIANT = detectViewVariant();
 
 let cached = null;
 
