@@ -5,7 +5,7 @@ name: Deploy prototype to GitHub Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, views-2, views-3]
   workflow_dispatch:
 
 permissions:
@@ -23,16 +23,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch branches for multi-variant build
+        run: git fetch origin
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install and build
+      - name: Install and build (main + views-2 + views-3 branches)
         run: |
-          npm ci
-          npm run build
+          chmod +x scripts/build-pages-site.sh
+          npm run build:pages
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
