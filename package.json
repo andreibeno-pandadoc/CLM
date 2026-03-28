@@ -12,6 +12,7 @@
     "preview": "vite preview --open /CLM/",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
+    "repo:push": "bash ../scripts/push-prototype-github.sh",
     "install:pduikit": "npm install \"git+ssh://git@gitlab.pandadoc.com/product/libjs-pduikit.next.git\" --save"
   },
   "dependencies": {
