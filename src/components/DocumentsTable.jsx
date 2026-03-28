@@ -386,6 +386,12 @@ const DocumentsTable = ({
       if (docDuration < fromMonths || docDuration > toMonths) return false;
     }
 
+    // Document type filter (per-view options; sample rows use documentType)
+    if (documentTypeFilter.length > 0) {
+      const t = doc.documentType;
+      if (!t || !documentTypeFilter.includes(t)) return false;
+    }
+
     return true;
   };
 

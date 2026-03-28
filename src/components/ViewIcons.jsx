@@ -104,6 +104,13 @@ const VIEW_ICON_MAP = {
   invoices: InvoicesIcon,
   forms: FormsViewIcon,
   collaterals: CollateralsIcon,
+  // views-3 (team nav): reuse view-1 iconography
+  sales: ProposalsIcon,
+  hr: ServiceAgreementsIcon,
+  legal: NDAsIcon,
+  finance: InvoicesIcon,
+  marketing: CollateralsIcon,
+  procurement: ContractsIcon,
 };
 
 export function ViewIcon({ viewId, active, className = 'w-5 h-5' }) {

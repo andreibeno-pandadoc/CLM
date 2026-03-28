@@ -1,9 +1,8 @@
-// Per-view config: Filters from “Nav proposal” column D; document-type values from “v4n” column B grouped per Nav column B.
-// Nav: https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=586991472
-// v4n: https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=839752090
-// filterIds map to FilterBar: document-type, date, status, owner, recipients, amount, renewal-date, completion-date, due-date, date-sent, payment-status, etc.
+// views-3: Team-based views (sheet column A) and filters (column D); document types from column B.
+// https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=136773082
 //
-// View icons match Figma “Views” nav (file ev8QrglqV7b7BNYKSBUUrs, node 1878:22195): SVGs in public/view-icons/ (exported from Figma MCP assets).
+// Icons reuse view-1 assets: sales→proposals, hr→service-agreements, legal→ndas, finance→invoices,
+// marketing→collaterals, procurement→contracts (see ViewIcons.jsx for React fallbacks).
 import { assetUrl } from '../utils/assetUrl';
 
 const viewIcon = (file) => assetUrl(`view-icons/${file}.svg`);
@@ -11,79 +10,54 @@ const viewIcon = (file) => assetUrl(`view-icons/${file}.svg`);
 export { DOCUMENT_TYPE_OPTIONS_BY_VIEW } from './documentTypeOptions';
 
 export const VIEW_CONFIG = {
-  contracts: {
-    title: 'Contracts',
-    ctaLabel: 'Contract',
-    filters: [
-      'Document Type',
-      'Date',
-      'Status (Draft / Sent / Completed / etc)',
-      'Completion date',
-      'Expiry / renewal date',
-    ],
-    filterIds: ['document-type', 'date', 'status', 'completion-date', 'renewal-date'],
-    iconSrc: viewIcon('contracts'),
-  },
-  'service-agreements': {
-    title: 'Service agreements',
-    ctaLabel: 'Service agreement',
-    filters: [
-      'Date',
-      'Status (Draft / Sent / Completed / etc)',
-      'Completion date',
-      'Expiry / renewal date',
-    ],
-    filterIds: ['date', 'status', 'completion-date', 'renewal-date'],
-    iconSrc: viewIcon('service-agreements'),
-  },
-  proposals: {
-    title: 'Proposals',
-    ctaLabel: 'Proposal',
+  sales: {
+    title: 'Sales',
+    ctaLabel: 'Document',
     filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
     filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
     iconSrc: viewIcon('proposals'),
   },
-  quotes: {
-    title: 'Quotes',
-    ctaLabel: 'Quote',
-    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
-    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
-    iconSrc: viewIcon('quotes'),
+  hr: {
+    title: 'HR',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Employee or candidate', 'Role / department'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients'],
+    iconSrc: viewIcon('service-agreements'),
   },
-  ndas: {
-    title: 'NDAs',
-    ctaLabel: 'NDA',
-    filters: ['Date', 'Status (Draft / Sent / Completed / etc)', 'Counterparty'],
-    filterIds: ['date', 'status', 'recipients'],
+  legal: {
+    title: 'Legal',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Counterparty', 'Jurisdiction / matter (optional)'],
+    filterIds: ['document-type', 'date', 'status', 'recipients'],
     iconSrc: viewIcon('ndas'),
   },
-  invoices: {
-    title: 'Invoices',
-    ctaLabel: 'Invoice',
+  finance: {
+    title: 'Finance',
+    ctaLabel: 'Document',
     filters: [
       'Document Type',
       'Date',
       'Status',
-      'Payment status (Unpaid / Partially paid / Paid)',
+      'Payment status',
       'Due date',
-      'Date sent',
+      'Amount',
     ],
-    filterIds: ['document-type', 'date', 'status', 'payment-status', 'due-date', 'date-sent'],
+    filterIds: ['document-type', 'date', 'status', 'payment-status', 'due-date', 'amount'],
     iconSrc: viewIcon('invoices'),
   },
-  forms: {
-    title: 'Forms',
-    ctaLabel: 'Form',
-    filters: ['Document Type', 'Status (Draft / Sent / Completed / etc)'],
-    filterIds: ['document-type', 'status'],
-    iconSrc: null, // not in that Figma frame; use ViewIcons.jsx
-  },
-  collaterals: {
-    title: 'Collaterals',
-    ctaLabel: 'Collateral',
-    filters: ['Document Type'],
-    filterIds: ['document-type'],
+  marketing: {
+    title: 'Marketing',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Program / campaign (optional)'],
+    filterIds: ['document-type', 'date', 'status', 'owner'],
     iconSrc: viewIcon('collaterals'),
+  },
+  procurement: {
+    title: 'Procurement',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Vendor or partner'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients'],
+    iconSrc: viewIcon('contracts'),
   },
 };
 
