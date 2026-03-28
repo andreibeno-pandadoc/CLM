@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDownIcon } from '../Icons';
 import DateRangeFilter from './DateRangeFilter';
 import StatusFilter from './StatusFilter';
@@ -36,6 +36,9 @@ const FilterBar = ({
   setDateSentFilter,
   paymentStatusFilter,
   setPaymentStatusFilter,
+  documentTypeFilter,
+  setDocumentTypeFilter,
+  documentTypeOptions = [],
   initialVisibleFilters
 }) => {
   const [activeFilter, setActiveFilter] = useState(null);
@@ -47,6 +50,7 @@ const FilterBar = ({
     if (Array.isArray(initialVisibleFilters)) {
       setVisibleFilters(initialVisibleFilters);
       setActiveFilter(null);
+      setDocumentTypeSearch('');
     }
   }, [initialVisibleFilters]);
 
@@ -60,6 +64,8 @@ const FilterBar = ({
   const [pendingAutoRenew, setPendingAutoRenew] = useState(null); // temporary selection before apply
   const [pendingDuration, setPendingDuration] = useState({ from: '', to: '' });
   const [pendingPaymentStatus, setPendingPaymentStatus] = useState([]);
+  const [pendingDocumentType, setPendingDocumentType] = useState([]);
+  const [documentTypeSearch, setDocumentTypeSearch] = useState('');
   const filterRef = useRef(null);
   const moreButtonRef = useRef(null);
 
@@ -165,9 +171,8 @@ const FilterBar = ({
     { id: 'renewal-date', label: 'Renewal Date' },
   ];
 
-  // System filters
+  // System filters (document-type is default on Views; not listed here)
   const systemFilters = [
-    { id: 'document-type', label: 'Document Type' },
     { id: 'duration', label: 'Duration (term)' },
     { id: 'currency', label: 'Currency' },
     { id: 'payment-term', label: 'Payment Term' },
@@ -201,9 +206,24 @@ const FilterBar = ({
   const hasPaymentStatusFilter = paymentStatusFilter?.length > 0;
   const hasAutoRenewFilter = autoRenewFilter !== null;
   const hasDurationFilter = durationFilter?.from !== '' || durationFilter?.to !== '';
+  const hasDocumentTypeFilter =
+    Array.isArray(documentTypeFilter) && documentTypeFilter.length > 0;
 
   // Check if any filter is applied
-  const hasAnyFilter = hasDateFilter || hasStatusFilter || hasAmountFilter || hasOwnerFilter || hasRecipientsFilter || hasRenewalDateFilter || hasCompletionDateFilter || hasDueDateFilter || hasDateSentFilter || hasPaymentStatusFilter || hasAutoRenewFilter || hasDurationFilter;
+  const hasAnyFilter =
+    hasDateFilter ||
+    hasStatusFilter ||
+    hasAmountFilter ||
+    hasOwnerFilter ||
+    hasRecipientsFilter ||
+    hasRenewalDateFilter ||
+    hasCompletionDateFilter ||
+    hasDueDateFilter ||
+    hasDateSentFilter ||
+    hasPaymentStatusFilter ||
+    hasAutoRenewFilter ||
+    hasDurationFilter ||
+    hasDocumentTypeFilter;
 
   // Clear all filters
   const handleClearAllFilters = () => {
@@ -235,6 +255,7 @@ const FilterBar = ({
     if (typeof setDueDateFilter === 'function') setDueDateFilter({ startDate: null, endDate: null });
     if (typeof setDateSentFilter === 'function') setDateSentFilter({ startDate: null, endDate: null });
     if (typeof setPaymentStatusFilter === 'function') setPaymentStatusFilter([]);
+    if (typeof setDocumentTypeFilter === 'function') setDocumentTypeFilter([]);
   };
 
   const toggleNewFilter = (filterId) => {
@@ -278,6 +299,12 @@ const FilterBar = ({
   const availableFilters = [...availableCustomFilters, ...availableSystemFilters];
   const filteredAvailableFilters = [...filteredCustomFilters, ...filteredSystemFilters];
 
+  const filteredDocumentTypeOptions = useMemo(() => {
+    const q = documentTypeSearch.trim().toLowerCase();
+    if (!q) return documentTypeOptions;
+    return documentTypeOptions.filter((opt) => opt.toLowerCase().includes(q));
+  }, [documentTypeOptions, documentTypeSearch]);
+
   const FilterButton = ({ label, isActive, hasFilter, onClick, onRemove, removable = false, children }) => (
     <div className="relative">
       <button
@@ -294,6 +321,120 @@ const FilterBar = ({
 
   return (
     <div className="flex items-center gap-[20px] mb-4 flex-wrap" ref={filterRef}>
+      {/* Document Type (per View; options from Nav proposal sheet) */}
+      {visibleFilters.includes('document-type') && (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              if (activeFilter === 'document-type') {
+                setActiveFilter(null);
+                setDocumentTypeSearch('');
+              } else {
+                setActiveFilter('document-type');
+                setDocumentTypeSearch('');
+                setPendingDocumentType(
+                  documentTypeFilter?.length ? [...documentTypeFilter] : []
+                );
+              }
+            }}
+            className={`${CHIP_BASE} ${hasDocumentTypeFilter ? CHIP_ON : CHIP_OFF}`}
+          >
+            {hasDocumentTypeFilter
+              ? `Document Type: ${documentTypeFilter.length} selected`
+              : 'Document Type'}
+            <ChevronDownIcon
+              className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'document-type' ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {activeFilter === 'document-type' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 w-[280px] flex flex-col overflow-hidden">
+              {documentTypeOptions.length === 0 ? (
+                <p className="px-4 py-3 text-13 text-secondary-light">No document types for this view</p>
+              ) : (
+                <>
+                  <div className="p-3 border-b border-thesis-border shrink-0">
+                    <div className="relative">
+                      <svg
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-light"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        aria-hidden
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                      <input
+                        type="search"
+                        placeholder="Search"
+                        value={documentTypeSearch}
+                        onChange={(e) => setDocumentTypeSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-14 font-graphik-regular border border-thesis-border rounded-md focus:outline-none focus:border-brand-primary"
+                        autoComplete="off"
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-[240px] overflow-y-auto">
+                    {filteredDocumentTypeOptions.length === 0 ? (
+                      <p className="px-4 py-3 text-13 text-secondary-light">No matching document types</p>
+                    ) : (
+                      filteredDocumentTypeOptions.map((opt) => (
+                        <label
+                          key={opt}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={pendingDocumentType.includes(opt)}
+                            onChange={() => {
+                              setPendingDocumentType((prev) =>
+                                prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                              );
+                            }}
+                            className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer shrink-0"
+                          />
+                          <span className="text-14 font-graphik-regular text-secondary-dark leading-snug">{opt}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between px-4 py-3 border-t border-thesis-border shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter(null);
+                    setDocumentTypeSearch('');
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-regular text-secondary-dark hover:bg-gray-100 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof setDocumentTypeFilter === 'function') {
+                      setDocumentTypeFilter(pendingDocumentType);
+                    }
+                    setActiveFilter(null);
+                    setDocumentTypeSearch('');
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-semibold text-white bg-brand-primary rounded hover:bg-opacity-90"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Date Filter */}
       {visibleFilters.includes('date') && (
         <FilterButton 
@@ -773,22 +914,6 @@ const FilterBar = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* Document Type Filter (placeholder) */}
-      {visibleFilters.includes('document-type') && (
-        <FilterButton 
-          label="Document Type" 
-          isActive={activeFilter === 'document-type'}
-          hasFilter={false}
-          onClick={() => setActiveFilter(activeFilter === 'document-type' ? null : 'document-type')}
-        >
-          {activeFilter === 'document-type' && (
-            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border p-4 z-50 min-w-[200px]">
-              <p className="text-13 text-secondary-light">No document types available</p>
-            </div>
-          )}
-        </FilterButton>
       )}
 
       {/* Currency Filter (placeholder) */}

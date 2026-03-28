@@ -43,7 +43,8 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       open: true,
-      strictPort: true,
+      // If 3000 is taken, try the next port (otherwise Vite exits with strictPort: true)
+      strictPort: false,
     },
     preview: {
       port: 4173,

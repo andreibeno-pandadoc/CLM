@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DocumentPortraitIcon, ChevronDownIcon, ChevronRightIcon } from './Icons';
 import StatusLabel from './StatusLabel';
 import Avatar from './Avatar';
@@ -10,7 +10,20 @@ import { FilterBar } from './filters';
 const img = (name) => assetUrl(`images/${name}`);
 const defaultUserAvatar = assetUrl('images/user-profile.png');
 
-const DocumentsTable = ({ currentFolder, onFolderClick, importedDocuments = [], importedOrganizationSettings = null, currentTab = 'All documents', searchQuery = '', onOpenDocument, hideFilterBar = false, visibleFilterIds, filtersVisible = true, viewId = null }) => {
+const DocumentsTable = ({
+  currentFolder,
+  onFolderClick,
+  importedDocuments = [],
+  importedOrganizationSettings = null,
+  currentTab = 'All documents',
+  searchQuery = '',
+  onOpenDocument,
+  hideFilterBar = false,
+  visibleFilterIds,
+  filtersVisible = true,
+  viewId = null,
+  documentTypeOptions = [],
+}) => {
   const [expandedFolders, setExpandedFolders] = useState({});
   const [selectedItems, setSelectedItems] = useState(new Set());
   
@@ -26,6 +39,11 @@ const DocumentsTable = ({ currentFolder, onFolderClick, importedDocuments = [], 
   const [dueDateFilter, setDueDateFilter] = useState({ startDate: null, endDate: null });
   const [dateSentFilter, setDateSentFilter] = useState({ startDate: null, endDate: null });
   const [paymentStatusFilter, setPaymentStatusFilter] = useState([]);
+  const [documentTypeFilter, setDocumentTypeFilter] = useState([]);
+
+  useEffect(() => {
+    setDocumentTypeFilter([]);
+  }, [viewId]);
 
   const toggleFolder = (folderId) => {
     setExpandedFolders(prev => ({
@@ -656,6 +674,9 @@ const DocumentsTable = ({ currentFolder, onFolderClick, importedDocuments = [], 
           setDateSentFilter={setDateSentFilter}
           paymentStatusFilter={paymentStatusFilter}
           setPaymentStatusFilter={setPaymentStatusFilter}
+          documentTypeFilter={documentTypeFilter}
+          setDocumentTypeFilter={setDocumentTypeFilter}
+          documentTypeOptions={documentTypeOptions}
           initialVisibleFilters={visibleFilterIds}
         />
       )}
