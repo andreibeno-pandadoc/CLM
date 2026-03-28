@@ -1,8 +1,8 @@
 // views-3: Team-based views (sheet column A) and filters (column D); document types from column B.
 // https://docs.google.com/spreadsheets/d/1aXXD9IiQqNQuqG91cyctwy0g0_RE8d-STnv6e929AIk/edit?gid=136773082
 //
-// Icons reuse view-1 assets: sales→proposals, hr→service-agreements, legal→ndas, finance→invoices,
-// marketing→collaterals, procurement→contracts (see ViewIcons.jsx for React fallbacks).
+// Icons reuse view-1 assets: sales→proposals, hr→service-agreements, legal→contracts, finance→invoices,
+// marketing→collaterals, procurement→quotes (see ViewIcons.jsx for React fallbacks).
 import { assetUrl } from '../utils/assetUrl';
 
 const viewIcon = (file) => assetUrl(`view-icons/${file}.svg`);
@@ -29,7 +29,7 @@ export const VIEW_CONFIG = {
     ctaLabel: 'Document',
     filters: ['Document Type', 'Date', 'Status', 'Counterparty', 'Jurisdiction / matter (optional)'],
     filterIds: ['document-type', 'date', 'status', 'recipients'],
-    iconSrc: viewIcon('ndas'),
+    iconSrc: viewIcon('contracts'),
   },
   finance: {
     title: 'Finance',
@@ -57,7 +57,7 @@ export const VIEW_CONFIG = {
     ctaLabel: 'Document',
     filters: ['Document Type', 'Date', 'Status', 'Owner', 'Vendor or partner'],
     filterIds: ['document-type', 'date', 'status', 'owner', 'recipients'],
-    iconSrc: viewIcon('contracts'),
+    iconSrc: viewIcon('quotes'),
   },
 };
 
