@@ -1,10 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Dev: base "/" → http://localhost:3000/
-// Production build: base "/CLM/" → https://user.github.io/CLM/
-//
-// Redirects so old /CLM/ bookmarks work in dev, and `vite preview` works when opening / instead of /CLM/
+// Dev: base "/". Production: "/" for Vercel or local builds; on GitHub Actions,
+// GITHUB_REPOSITORY is set so base is "/<repo>/" for GitHub Pages.
 function clmPathFallbackPlugin() {
   return {
     name: 'clm-path-fallback',
@@ -12,18 +10,7 @@ function clmPathFallbackPlugin() {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split('?')[0] ?? ''
         if (url === '/CLM' || url === '/CLM/') {
-          res.writeHead(302, { Location: '/' }) // dev server is base / (e.g. http://localhost:5173/)
-          res.end()
-          return
-        }
-        next()
-      })
-    },
-    configurePreviewServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const url = req.url?.split('?')[0] ?? ''
-        if (url === '/' || url === '/index.html') {
-          res.writeHead(302, { Location: '/CLM/' })
+          res.writeHead(302, { Location: '/' })
           res.end()
           return
         }
@@ -33,9 +20,14 @@ function clmPathFallbackPlugin() {
   }
 }
 
+function productionBase() {
+  const repo = process.env.GITHUB_REPOSITORY?.split('/')[1]
+  return repo ? `/${repo}/` : '/'
+}
+
 export default defineConfig(({ mode }) => ({
   plugins: [react(), clmPathFallbackPlugin()],
-  base: mode === 'production' ? '/CLM/' : '/',
+  base: mode === 'production' ? productionBase() : '/',
   server: {
     port: 3000,
     open: true,
