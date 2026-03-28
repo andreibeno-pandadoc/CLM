@@ -1,0 +1,974 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDownIcon } from '../Icons';
+import DateRangeFilter from './DateRangeFilter';
+import StatusFilter from './StatusFilter';
+import AmountFilter from './AmountFilter';
+import UserFilter from './UserFilter';
+
+const DEFAULT_VISIBLE_FILTERS = ['date', 'status', 'owner', 'recipients', 'amount'];
+
+/** Chips: lighter fill than main “Filters” toolbar (Thesis / MCP) */
+const CHIP_BASE =
+  'flex items-center gap-1.5 h-8 px-3 text-14 font-graphik-semibold rounded transition-colors';
+const CHIP_OFF = 'text-thesis-ink bg-thesis-chip hover:bg-thesis-chip-hover';
+const CHIP_ON = 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/15';
+
+const FilterBar = ({ 
+  dateFilter, 
+  setDateFilter, 
+  statusFilter, 
+  setStatusFilter, 
+  amountFilter, 
+  setAmountFilter, 
+  ownerFilter, 
+  setOwnerFilter, 
+  recipientsFilter, 
+  setRecipientsFilter,
+  autoRenewFilter,
+  setAutoRenewFilter,
+  durationFilter,
+  setDurationFilter,
+  completionDateFilter,
+  setCompletionDateFilter,
+  dueDateFilter,
+  setDueDateFilter,
+  dateSentFilter,
+  setDateSentFilter,
+  paymentStatusFilter,
+  setPaymentStatusFilter,
+  initialVisibleFilters
+}) => {
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [showMoreDropdown, setShowMoreDropdown] = useState(false);
+  const [visibleFilters, setVisibleFilters] = useState(Array.isArray(initialVisibleFilters) ? initialVisibleFilters : DEFAULT_VISIBLE_FILTERS);
+
+  // When view changes, sync visible filters so each view shows its own filter set
+  useEffect(() => {
+    if (Array.isArray(initialVisibleFilters)) {
+      setVisibleFilters(initialVisibleFilters);
+      setActiveFilter(null);
+    }
+  }, [initialVisibleFilters]);
+
+  const [selectedNewFilters, setSelectedNewFilters] = useState([]);
+  const [filterSearch, setFilterSearch] = useState('');
+  const [showRenewalDateCustom, setShowRenewalDateCustom] = useState(false);
+  const [renewalDateFilter, setRenewalDateFilter] = useState(null);
+  const [showCompletionDateCustom, setShowCompletionDateCustom] = useState(false);
+  const [showDueDateCustom, setShowDueDateCustom] = useState(false);
+  const [showDateSentCustom, setShowDateSentCustom] = useState(false);
+  const [pendingAutoRenew, setPendingAutoRenew] = useState(null); // temporary selection before apply
+  const [pendingDuration, setPendingDuration] = useState({ from: '', to: '' });
+  const [pendingPaymentStatus, setPendingPaymentStatus] = useState([]);
+  const filterRef = useRef(null);
+  const moreButtonRef = useRef(null);
+
+  // Helper function to format date as "Mon D, YYYY"
+  const formatDate = (date) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
+  // Helper function to calculate date ranges
+  const calculateDateRange = (option) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let startDate = new Date(today);
+    let endDate = new Date(today);
+
+    switch (option) {
+      case 'last-day':
+        startDate.setDate(startDate.getDate() - 1);
+        endDate = new Date(today);
+        break;
+      case 'last-7-days':
+        startDate.setDate(startDate.getDate() - 7);
+        endDate = new Date(today);
+        break;
+      case 'last-month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        endDate = new Date(today);
+        break;
+      case 'last-3-months':
+        startDate.setMonth(startDate.getMonth() - 3);
+        endDate = new Date(today);
+        break;
+      case 'last-6-months':
+        startDate.setMonth(startDate.getMonth() - 6);
+        endDate = new Date(today);
+        break;
+      case 'last-year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        endDate = new Date(today);
+        break;
+      case 'next-7-days':
+        startDate = new Date(today);
+        endDate.setDate(endDate.getDate() + 7);
+        break;
+      case 'next-month':
+        startDate = new Date(today);
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
+      case 'next-3-months':
+        startDate = new Date(today);
+        endDate.setMonth(endDate.getMonth() + 3);
+        break;
+      case 'next-6-months':
+        startDate = new Date(today);
+        endDate.setMonth(endDate.getMonth() + 6);
+        break;
+      case 'next-year':
+        startDate = new Date(today);
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        break;
+      default:
+        return null;
+    }
+    return { startDate, endDate };
+  };
+
+  const handleRenewalDateSelect = (option) => {
+    const dateRange = calculateDateRange(option);
+    if (dateRange) {
+      setRenewalDateFilter(dateRange);
+      setActiveFilter(null);
+    }
+  };
+
+  const handleCompletionDateSelect = (option) => {
+    const dateRange = calculateDateRange(option);
+    if (dateRange && setCompletionDateFilter) {
+      setCompletionDateFilter(dateRange);
+      setActiveFilter(null);
+    }
+  };
+
+  const handleDueDateSelect = (option) => {
+    const dateRange = calculateDateRange(option);
+    if (dateRange && setDueDateFilter) {
+      setDueDateFilter(dateRange);
+      setActiveFilter(null);
+    }
+  };
+
+  const handleDateSentSelect = (option) => {
+    const dateRange = calculateDateRange(option);
+    if (dateRange && setDateSentFilter) {
+      setDateSentFilter(dateRange);
+      setActiveFilter(null);
+    }
+  };
+
+  // Additional filters that can be added via "More +" - Custom section
+  const customFilters = [
+    { id: 'auto-renew', label: 'Auto Renew' },
+    { id: 'renewal-date', label: 'Renewal Date' },
+  ];
+
+  // System filters
+  const systemFilters = [
+    { id: 'document-type', label: 'Document Type' },
+    { id: 'duration', label: 'Duration (term)' },
+    { id: 'currency', label: 'Currency' },
+    { id: 'payment-term', label: 'Payment Term' },
+    { id: 'venue', label: 'Venue' },
+  ];
+
+  // Combined for filtering logic
+  const additionalFilters = [...customFilters, ...systemFilters];
+
+  // Close filter when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setActiveFilter(null);
+        setShowMoreDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasDateFilter = dateFilter?.startDate || dateFilter?.endDate;
+  const hasStatusFilter = statusFilter?.length > 0;
+  const hasAmountFilter = amountFilter?.from !== null && amountFilter?.from !== undefined;
+  const hasOwnerFilter = ownerFilter?.length > 0;
+  const hasRecipientsFilter = recipientsFilter?.length > 0;
+  const hasRenewalDateFilter = renewalDateFilter !== null;
+  const hasCompletionDateFilter = completionDateFilter?.startDate || completionDateFilter?.endDate;
+  const hasDueDateFilter = dueDateFilter?.startDate || dueDateFilter?.endDate;
+  const hasDateSentFilter = dateSentFilter?.startDate || dateSentFilter?.endDate;
+  const hasPaymentStatusFilter = paymentStatusFilter?.length > 0;
+  const hasAutoRenewFilter = autoRenewFilter !== null;
+  const hasDurationFilter = durationFilter?.from !== '' || durationFilter?.to !== '';
+
+  // Check if any filter is applied
+  const hasAnyFilter = hasDateFilter || hasStatusFilter || hasAmountFilter || hasOwnerFilter || hasRecipientsFilter || hasRenewalDateFilter || hasCompletionDateFilter || hasDueDateFilter || hasDateSentFilter || hasPaymentStatusFilter || hasAutoRenewFilter || hasDurationFilter;
+
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    // Clear parent filters safely - match initial state values
+    if (typeof setDateFilter === 'function') {
+      setDateFilter({ startDate: null, endDate: null });
+    }
+    if (typeof setStatusFilter === 'function') {
+      setStatusFilter([]);
+    }
+    if (typeof setAmountFilter === 'function') {
+      setAmountFilter(null);
+    }
+    if (typeof setOwnerFilter === 'function') {
+      setOwnerFilter([]);
+    }
+    if (typeof setRecipientsFilter === 'function') {
+      setRecipientsFilter([]);
+    }
+    if (typeof setAutoRenewFilter === 'function') {
+      setAutoRenewFilter(null);
+    }
+    if (typeof setDurationFilter === 'function') {
+      setDurationFilter({ from: '', to: '' });
+    }
+    // Clear local filters
+    setRenewalDateFilter(null);
+    if (typeof setCompletionDateFilter === 'function') setCompletionDateFilter(null);
+    if (typeof setDueDateFilter === 'function') setDueDateFilter({ startDate: null, endDate: null });
+    if (typeof setDateSentFilter === 'function') setDateSentFilter({ startDate: null, endDate: null });
+    if (typeof setPaymentStatusFilter === 'function') setPaymentStatusFilter([]);
+  };
+
+  const toggleNewFilter = (filterId) => {
+    if (selectedNewFilters.includes(filterId)) {
+      setSelectedNewFilters(selectedNewFilters.filter(f => f !== filterId));
+    } else {
+      setSelectedNewFilters([...selectedNewFilters, filterId]);
+    }
+  };
+
+  const handleAddFilters = () => {
+    setVisibleFilters([...visibleFilters, ...selectedNewFilters]);
+    setSelectedNewFilters([]);
+    setFilterSearch('');
+    setShowMoreDropdown(false);
+  };
+
+  const handleCancelMore = () => {
+    setSelectedNewFilters([]);
+    setFilterSearch('');
+    setShowMoreDropdown(false);
+  };
+
+  const removeFilter = (filterId) => {
+    setVisibleFilters(visibleFilters.filter(f => f !== filterId));
+  };
+
+  // Get filters that aren't yet visible - separated by section
+  const availableCustomFilters = customFilters.filter(f => !visibleFilters.includes(f.id));
+  const availableSystemFilters = systemFilters.filter(f => !visibleFilters.includes(f.id));
+  
+  // Filter by search
+  const filteredCustomFilters = availableCustomFilters.filter(f => 
+    f.label.toLowerCase().includes(filterSearch.toLowerCase())
+  );
+  const filteredSystemFilters = availableSystemFilters.filter(f => 
+    f.label.toLowerCase().includes(filterSearch.toLowerCase())
+  );
+  
+  // Combined for legacy compatibility
+  const availableFilters = [...availableCustomFilters, ...availableSystemFilters];
+  const filteredAvailableFilters = [...filteredCustomFilters, ...filteredSystemFilters];
+
+  const FilterButton = ({ label, isActive, hasFilter, onClick, onRemove, removable = false, children }) => (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`${CHIP_BASE} ${hasFilter ? CHIP_ON : CHIP_OFF}`}
+      >
+        {label}
+        <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${isActive ? 'rotate-180' : ''}`} />
+      </button>
+      {children}
+    </div>
+  );
+
+  return (
+    <div className="flex items-center gap-[20px] mb-4 flex-wrap" ref={filterRef}>
+      {/* Date Filter */}
+      {visibleFilters.includes('date') && (
+        <FilterButton 
+          label="Date" 
+          isActive={activeFilter === 'date'}
+          hasFilter={hasDateFilter}
+          onClick={() => setActiveFilter(activeFilter === 'date' ? null : 'date')}
+        >
+          <DateRangeFilter 
+            isOpen={activeFilter === 'date'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setDateFilter}
+            initialStartDate={dateFilter?.startDate}
+            initialEndDate={dateFilter?.endDate}
+          />
+        </FilterButton>
+      )}
+
+      {/* Status Filter */}
+      {visibleFilters.includes('status') && (
+        <FilterButton 
+          label="Status" 
+          isActive={activeFilter === 'status'}
+          hasFilter={hasStatusFilter}
+          onClick={() => setActiveFilter(activeFilter === 'status' ? null : 'status')}
+        >
+          <StatusFilter 
+            isOpen={activeFilter === 'status'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setStatusFilter}
+            selectedStatuses={statusFilter || []}
+          />
+        </FilterButton>
+      )}
+
+      {/* Owner Filter */}
+      {visibleFilters.includes('owner') && (
+        <FilterButton 
+          label="Owner" 
+          isActive={activeFilter === 'owner'}
+          hasFilter={hasOwnerFilter}
+          onClick={() => setActiveFilter(activeFilter === 'owner' ? null : 'owner')}
+        >
+          <UserFilter 
+            isOpen={activeFilter === 'owner'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setOwnerFilter}
+            selectedUsers={ownerFilter || []}
+            title="Owner"
+          />
+        </FilterButton>
+      )}
+
+      {/* Recipients Filter */}
+      {visibleFilters.includes('recipients') && (
+        <FilterButton 
+          label="Recipients" 
+          isActive={activeFilter === 'recipients'}
+          hasFilter={hasRecipientsFilter}
+          onClick={() => setActiveFilter(activeFilter === 'recipients' ? null : 'recipients')}
+        >
+          <UserFilter 
+            isOpen={activeFilter === 'recipients'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setRecipientsFilter}
+            selectedUsers={recipientsFilter || []}
+            title="Recipients"
+          />
+        </FilterButton>
+      )}
+
+      {/* Amount Filter */}
+      {visibleFilters.includes('amount') && (
+        <FilterButton 
+          label="Amount" 
+          isActive={activeFilter === 'amount'}
+          hasFilter={hasAmountFilter}
+          onClick={() => setActiveFilter(activeFilter === 'amount' ? null : 'amount')}
+        >
+          <AmountFilter 
+            isOpen={activeFilter === 'amount'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setAmountFilter}
+            initialFilter={amountFilter}
+          />
+        </FilterButton>
+      )}
+
+      {/* Renewal Date Filter */}
+      {visibleFilters.includes('renewal-date') && (
+        <div className="relative">
+          <button
+            onClick={() => {
+              setActiveFilter(activeFilter === 'renewal-date' ? null : 'renewal-date');
+              setShowRenewalDateCustom(false);
+            }}
+            className={`${CHIP_BASE} ${renewalDateFilter ? CHIP_ON : CHIP_OFF}`}
+          >
+            {renewalDateFilter 
+              ? `Renewal Date: ${formatDate(renewalDateFilter.startDate)} — ${formatDate(renewalDateFilter.endDate)}`
+              : 'Renewal Date'
+            }
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'renewal-date' ? 'rotate-180' : ''}`} />
+          </button>
+
+          {activeFilter === 'renewal-date' && !showRenewalDateCustom && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 min-w-[180px]">
+              {/* Past Options */}
+              <div className="py-2">
+                <button onClick={() => handleRenewalDateSelect('last-day')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last day
+                </button>
+                <button onClick={() => handleRenewalDateSelect('last-7-days')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last 7 days
+                </button>
+                <button onClick={() => handleRenewalDateSelect('last-month')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last month
+                </button>
+                <button onClick={() => handleRenewalDateSelect('last-3-months')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last 3 months
+                </button>
+                <button onClick={() => handleRenewalDateSelect('last-6-months')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last 6 months
+                </button>
+                <button onClick={() => handleRenewalDateSelect('last-year')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Last year
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-thesis-border"></div>
+
+              {/* Future Options */}
+              <div className="py-2">
+                <button onClick={() => handleRenewalDateSelect('next-7-days')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Next 7 days
+                </button>
+                <button onClick={() => handleRenewalDateSelect('next-month')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Next month
+                </button>
+                <button onClick={() => handleRenewalDateSelect('next-3-months')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Next 3 months
+                </button>
+                <button onClick={() => handleRenewalDateSelect('next-6-months')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Next 6 months
+                </button>
+                <button onClick={() => handleRenewalDateSelect('next-year')} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Next year
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-thesis-border"></div>
+
+              {/* Custom Option */}
+              <div className="py-2">
+                <button 
+                  onClick={() => setShowRenewalDateCustom(true)}
+                  className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors"
+                >
+                  Custom
+                </button>
+              </div>
+            </div>
+          )}
+          {activeFilter === 'renewal-date' && showRenewalDateCustom && (
+            <DateRangeFilter 
+              isOpen={true}
+              onClose={() => {
+                setActiveFilter(null);
+                setShowRenewalDateCustom(false);
+              }}
+              onApply={(dates) => {
+                setRenewalDateFilter(dates);
+                setActiveFilter(null);
+                setShowRenewalDateCustom(false);
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Completion date Filter - same UX as Renewal Date */}
+      {visibleFilters.includes('completion-date') && setCompletionDateFilter && (
+        <div className="relative">
+          <button
+            onClick={() => {
+              setActiveFilter(activeFilter === 'completion-date' ? null : 'completion-date');
+              setShowCompletionDateCustom(false);
+            }}
+            className={`${CHIP_BASE} ${hasCompletionDateFilter ? CHIP_ON : CHIP_OFF}`}
+          >
+            {hasCompletionDateFilter && completionDateFilter?.startDate && completionDateFilter?.endDate
+              ? `Completion date: ${formatDate(completionDateFilter.startDate)} — ${formatDate(completionDateFilter.endDate)}`
+              : 'Completion date'
+            }
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'completion-date' ? 'rotate-180' : ''}`} />
+          </button>
+          {activeFilter === 'completion-date' && !showCompletionDateCustom && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 min-w-[180px]">
+              <div className="py-2">
+                {['last-day', 'last-7-days', 'last-month', 'last-3-months', 'last-6-months', 'last-year'].map((opt) => (
+                  <button key={opt} onClick={() => handleCompletionDateSelect(opt)} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                    {opt.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-thesis-border"></div>
+              <div className="py-2">
+                <button onClick={() => setShowCompletionDateCustom(true)} className="w-full text-left px-4 py-2 text-14 font-graphik-regular text-secondary-dark hover:bg-gray-50 transition-colors">
+                  Custom
+                </button>
+              </div>
+            </div>
+          )}
+          {activeFilter === 'completion-date' && showCompletionDateCustom && (
+            <DateRangeFilter
+              isOpen={true}
+              onClose={() => { setActiveFilter(null); setShowCompletionDateCustom(false); }}
+              onApply={(dates) => { setCompletionDateFilter(dates); setActiveFilter(null); setShowCompletionDateCustom(false); }}
+              initialStartDate={completionDateFilter?.startDate}
+              initialEndDate={completionDateFilter?.endDate}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Due date Filter - same UX as Date */}
+      {visibleFilters.includes('due-date') && setDueDateFilter && (
+        <FilterButton
+          label="Due date"
+          isActive={activeFilter === 'due-date'}
+          hasFilter={hasDueDateFilter}
+          onClick={() => setActiveFilter(activeFilter === 'due-date' ? null : 'due-date')}
+        >
+          <DateRangeFilter
+            isOpen={activeFilter === 'due-date'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setDueDateFilter}
+            initialStartDate={dueDateFilter?.startDate}
+            initialEndDate={dueDateFilter?.endDate}
+          />
+        </FilterButton>
+      )}
+
+      {/* Date sent Filter - same UX as Date */}
+      {visibleFilters.includes('date-sent') && setDateSentFilter && (
+        <FilterButton
+          label="Date sent"
+          isActive={activeFilter === 'date-sent'}
+          hasFilter={hasDateSentFilter}
+          onClick={() => setActiveFilter(activeFilter === 'date-sent' ? null : 'date-sent')}
+        >
+          <DateRangeFilter
+            isOpen={activeFilter === 'date-sent'}
+            onClose={() => setActiveFilter(null)}
+            onApply={setDateSentFilter}
+            initialStartDate={dateSentFilter?.startDate}
+            initialEndDate={dateSentFilter?.endDate}
+          />
+        </FilterButton>
+      )}
+
+      {/* Payment status Filter - example values: Unpaid, Partially paid, Paid */}
+      {visibleFilters.includes('payment-status') && setPaymentStatusFilter && (
+        <div className="relative">
+          <button
+            onClick={() => {
+              if (activeFilter === 'payment-status') {
+                setActiveFilter(null);
+                setPendingPaymentStatus(paymentStatusFilter || []);
+              } else {
+                setActiveFilter('payment-status');
+                setPendingPaymentStatus(paymentStatusFilter?.length ? [...paymentStatusFilter] : []);
+              }
+            }}
+            className={`${CHIP_BASE} ${hasPaymentStatusFilter ? CHIP_ON : CHIP_OFF}`}
+          >
+            {hasPaymentStatusFilter ? `Payment status: ${paymentStatusFilter.length} selected` : 'Payment status'}
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'payment-status' ? 'rotate-180' : ''}`} />
+          </button>
+          {activeFilter === 'payment-status' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 min-w-[200px]">
+              {['Unpaid', 'Partially paid', 'Paid'].map((opt) => (
+                <label key={opt} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={pendingPaymentStatus.includes(opt)}
+                    onChange={() => {
+                      setPendingPaymentStatus((prev) =>
+                        prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                      );
+                    }}
+                    className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                  />
+                  <span className="text-14 font-graphik-regular text-secondary-dark">{opt}</span>
+                </label>
+              ))}
+              <div className="flex items-center justify-between px-4 py-3 border-t border-thesis-border">
+                <button onClick={() => setActiveFilter(null)} className="px-4 py-2 text-13 font-graphik-regular text-secondary-dark hover:bg-gray-100 rounded">Cancel</button>
+                <button
+                  onClick={() => {
+                    setPaymentStatusFilter(pendingPaymentStatus);
+                    setActiveFilter(null);
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-semibold text-white bg-brand-primary rounded hover:bg-opacity-90"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Auto Renew Filter */}
+      {visibleFilters.includes('auto-renew') && (
+        <div className="relative">
+          <button
+            onClick={() => {
+              if (activeFilter === 'auto-renew') {
+                setActiveFilter(null);
+                setPendingAutoRenew(null);
+              } else {
+                setActiveFilter('auto-renew');
+                setPendingAutoRenew(autoRenewFilter); // initialize with current value
+              }
+            }}
+            className={`${CHIP_BASE} ${autoRenewFilter !== null ? CHIP_ON : CHIP_OFF}`}
+          >
+            {autoRenewFilter !== null
+              ? `Auto-renewable: ${autoRenewFilter === 'yes' ? 'Yes' : 'No'}`
+              : 'Auto Renew'
+            }
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'auto-renew' ? 'rotate-180' : ''}`} />
+          </button>
+
+          {activeFilter === 'auto-renew' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 min-w-[200px]">
+              {/* Options */}
+              <div className="py-2">
+                <label className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={pendingAutoRenew === 'yes'}
+                    onChange={() => setPendingAutoRenew(pendingAutoRenew === 'yes' ? null : 'yes')}
+                    className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                  />
+                  <span className="text-14 font-graphik-regular text-secondary-dark">Yes</span>
+                </label>
+                <label className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={pendingAutoRenew === 'no'}
+                    onChange={() => setPendingAutoRenew(pendingAutoRenew === 'no' ? null : 'no')}
+                    className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                  />
+                  <span className="text-14 font-graphik-regular text-secondary-dark">No</span>
+                </label>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex items-center justify-between px-4 py-3 border-t border-thesis-border">
+                <button
+                  onClick={() => {
+                    setPendingAutoRenew(null);
+                    setActiveFilter(null);
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-regular text-secondary-dark hover:bg-gray-100 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setAutoRenewFilter(pendingAutoRenew);
+                    setActiveFilter(null);
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-semibold text-white bg-brand-primary rounded hover:bg-opacity-90"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Duration (term) Filter */}
+      {visibleFilters.includes('duration') && (
+        <div className="relative">
+          <button
+            onClick={() => {
+              if (activeFilter === 'duration') {
+                setActiveFilter(null);
+                setPendingDuration({ from: '', to: '' });
+              } else {
+                setActiveFilter('duration');
+                setPendingDuration(durationFilter);
+              }
+            }}
+            className={`${CHIP_BASE} ${hasDurationFilter ? CHIP_ON : CHIP_OFF}`}
+          >
+            {hasDurationFilter
+              ? `Term: ${durationFilter.from || 'Any'} months — ${durationFilter.to ? `${durationFilter.to} months` : 'Any'}`
+              : 'Duration (term)'
+            }
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${activeFilter === 'duration' ? 'rotate-180' : ''}`} />
+          </button>
+
+          {activeFilter === 'duration' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 min-w-[300px]">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-thesis-border">
+                <span className="text-14 font-graphik-semibold text-secondary-dark">Filter by</span>
+                <button 
+                  onClick={() => setPendingDuration({ from: '', to: '' })}
+                  className="text-13 font-graphik-regular text-brand-primary hover:underline"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              {/* FROM and TO side by side */}
+              <div className="flex gap-4 px-4 py-3">
+                {/* FROM Section */}
+                <div className="flex-1">
+                  <div className="text-11 font-graphik-regular text-secondary-light uppercase tracking-wide mb-2">From</div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Any"
+                      value={pendingDuration.from}
+                      onChange={(e) => setPendingDuration({ ...pendingDuration, from: e.target.value })}
+                      className="w-16 px-3 py-2 text-14 font-graphik-regular border border-thesis-border rounded focus:outline-none focus:border-brand-primary"
+                    />
+                    <span className="text-14 font-graphik-regular text-secondary-dark">Months</span>
+                  </div>
+                </div>
+
+                {/* TO Section */}
+                <div className="flex-1">
+                  <div className="text-11 font-graphik-regular text-secondary-light uppercase tracking-wide mb-2">To</div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Any"
+                      value={pendingDuration.to}
+                      onChange={(e) => setPendingDuration({ ...pendingDuration, to: e.target.value })}
+                      className="w-16 px-3 py-2 text-14 font-graphik-regular border border-thesis-border rounded focus:outline-none focus:border-brand-primary"
+                    />
+                    <span className="text-14 font-graphik-regular text-secondary-dark">Months</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex items-center justify-between px-4 py-3 border-t border-thesis-border">
+                <button
+                  onClick={() => {
+                    setPendingDuration({ from: '', to: '' });
+                    setActiveFilter(null);
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-regular text-secondary-dark hover:bg-gray-100 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setDurationFilter(pendingDuration);
+                    setActiveFilter(null);
+                  }}
+                  className="px-4 py-2 text-13 font-graphik-semibold text-white bg-brand-primary rounded hover:bg-opacity-90"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Document Type Filter (placeholder) */}
+      {visibleFilters.includes('document-type') && (
+        <FilterButton 
+          label="Document Type" 
+          isActive={activeFilter === 'document-type'}
+          hasFilter={false}
+          onClick={() => setActiveFilter(activeFilter === 'document-type' ? null : 'document-type')}
+        >
+          {activeFilter === 'document-type' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border p-4 z-50 min-w-[200px]">
+              <p className="text-13 text-secondary-light">No document types available</p>
+            </div>
+          )}
+        </FilterButton>
+      )}
+
+      {/* Currency Filter (placeholder) */}
+      {visibleFilters.includes('currency') && (
+        <FilterButton 
+          label="Currency" 
+          isActive={activeFilter === 'currency'}
+          hasFilter={false}
+          onClick={() => setActiveFilter(activeFilter === 'currency' ? null : 'currency')}
+        >
+          {activeFilter === 'currency' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border p-4 z-50 min-w-[200px]">
+              <p className="text-13 text-secondary-light">No currencies available</p>
+            </div>
+          )}
+        </FilterButton>
+      )}
+
+      {/* Payment Term Filter (placeholder) */}
+      {visibleFilters.includes('payment-term') && (
+        <FilterButton 
+          label="Payment Term" 
+          isActive={activeFilter === 'payment-term'}
+          hasFilter={false}
+          onClick={() => setActiveFilter(activeFilter === 'payment-term' ? null : 'payment-term')}
+        >
+          {activeFilter === 'payment-term' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border p-4 z-50 min-w-[200px]">
+              <p className="text-13 text-secondary-light">No payment terms available</p>
+            </div>
+          )}
+        </FilterButton>
+      )}
+
+      {/* Venue Filter (placeholder) */}
+      {visibleFilters.includes('venue') && (
+        <FilterButton 
+          label="Venue" 
+          isActive={activeFilter === 'venue'}
+          hasFilter={false}
+          onClick={() => setActiveFilter(activeFilter === 'venue' ? null : 'venue')}
+        >
+          {activeFilter === 'venue' && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border p-4 z-50 min-w-[200px]">
+              <p className="text-13 text-secondary-light">No venues available</p>
+            </div>
+          )}
+        </FilterButton>
+      )}
+
+      {/* More Button */}
+      <div className="relative" ref={moreButtonRef}>
+        <button 
+          type="button"
+          onClick={() => setShowMoreDropdown(!showMoreDropdown)}
+          className={`${CHIP_BASE} ${CHIP_OFF}`}
+        >
+          More
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+
+        {/* More Dropdown - Multi-select with search */}
+        {showMoreDropdown && (
+          <div className="absolute top-full left-0 mt-2 bg-white rounded-md shadow-subtle border border-thesis-border z-50 w-[260px]">
+            {/* Search Input */}
+            <div className="p-3 border-b border-thesis-border">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={filterSearch}
+                  onChange={(e) => setFilterSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-14 font-graphik-regular border border-thesis-border rounded-md focus:outline-none focus:border-brand-primary"
+                />
+              </div>
+            </div>
+
+            {/* Filter Options */}
+            <div className="max-h-[300px] overflow-y-auto">
+              {/* Custom Section */}
+              {filteredCustomFilters.length > 0 && (
+                <div className="py-2">
+                  <div className="px-4 py-2">
+                    <span className="text-11 font-graphik-semibold text-secondary-light uppercase tracking-wide">Custom</span>
+                  </div>
+                  {filteredCustomFilters.map((filter) => (
+                    <label
+                      key={filter.id}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedNewFilters.includes(filter.id)}
+                        onChange={() => toggleNewFilter(filter.id)}
+                        className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                      />
+                      <span className="text-14 font-graphik-regular text-secondary-dark">
+                        {filter.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* System Section */}
+              {filteredSystemFilters.length > 0 && (
+                <div className="py-2">
+                  <div className="px-4 py-2">
+                    <span className="text-11 font-graphik-semibold text-secondary-light uppercase tracking-wide">System</span>
+                  </div>
+                  {filteredSystemFilters.map((filter) => (
+                    <label
+                      key={filter.id}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedNewFilters.includes(filter.id)}
+                        onChange={() => toggleNewFilter(filter.id)}
+                        className="w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                      />
+                      <span className="text-14 font-graphik-regular text-secondary-dark">
+                        {filter.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* No filters message */}
+              {filteredCustomFilters.length === 0 && filteredSystemFilters.length === 0 && (
+                <p className="px-4 py-4 text-13 text-secondary-light">
+                  {availableFilters.length === 0 ? 'All filters are visible' : 'No matching filters'}
+                </p>
+              )}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex items-center justify-between p-3 border-t border-thesis-border">
+              <button
+                onClick={handleCancelMore}
+                className="px-4 py-2 text-14 font-graphik-semibold text-secondary-dark hover:bg-gray-50 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddFilters}
+                className="px-4 py-2 text-14 font-graphik-semibold rounded-md transition-colors bg-brand-primary text-white hover:bg-brand-primary-dark"
+              >
+                Add filters
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Clear All Button - only show when filters are applied */}
+      {hasAnyFilter && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleClearAllFilters();
+          }}
+          className="flex items-center gap-1.5 px-2 py-1.5 text-13 font-graphik-regular text-secondary-light hover:text-secondary-dark transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear all
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default FilterBar;
