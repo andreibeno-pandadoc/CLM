@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/CLM/views-1/pandadoc-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLM Visiontype - Document Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/CLM/views-1/assets/index-kmds6NHK.js"></script>
+    <link rel="stylesheet" crossorigin href="/CLM/views-1/assets/index-BxcTHFaO.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Opening index.html via file:// does not load ES modules; use `npm run dev` -->
+    <script>
+      (function () {
+        if (location.protocol === 'file:') {
+          var el = document.getElementById('root')
+          if (el) {
+            el.innerHTML =
+              '<div style="padding:24px;font-family:system-ui,sans-serif;max-width:520px;line-height:1.5">' +
+              '<h1 style="font-size:18px;margin:0 0 12px">Run the dev server</h1>' +
+              '<p style="margin:0 0 12px">This app cannot run when opened directly from disk (<code>file://</code>). ES module scripts are blocked.</p>' +
+              '<p style="margin:0">From this repo root run <code>npm install</code> then <code>npm run dev</code> and open <code>http://localhost:3000/</code>.</p>' +
+              '</div>'
+          }
+        }
+      })()
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,59 @@
+# Deploy the Vite app to GitHub Pages (site root = dist/).
+# Enable Pages: repo Settings → Pages → Source: GitHub Actions.
+
+name: Deploy prototype to GitHub Pages
+
+on:
+  push:
+    branches: [main, master, views-1, views-2, views-3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch branches for multi-variant build
+        run: git fetch origin
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build (main + views-1 + views-2 + views-3 branches)
+        run: |
+          chmod +x scripts/build-pages-site.sh
+          npm run build:pages
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy-pages:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
