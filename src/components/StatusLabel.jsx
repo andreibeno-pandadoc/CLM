@@ -6,12 +6,17 @@ const StatusLabel = ({ type, children }) => {
       case 'draft':
         return 'status-draft';
       case 'sent':
+      case 'signed':
+      case 'viewed':
         return 'status-sent';
       case 'completed':
         return 'status-completed';
+      case 'not signed':
+        return 'status-draft';
       case 'awaiting approval':
         return 'status-awaiting-approval';
       case 'rejected':
+      case 'expired':
         return 'status-rejected';
       default:
         return 'status-draft';
