@@ -13,6 +13,16 @@ import BulkImportPage from './components/BulkImportPage';
 import DocumentViewerPage from './components/DocumentViewerPage';
 import { VIEW_IDS } from './config/views';
 
+/** GitHub Pages variant builds live under /CLM/views-1/ … /views-3/; open the first View so sample data + ViewContent mount (not MainContent → Documents). */
+function getInitialActivePage() {
+  if (typeof window === 'undefined') return 'Documents';
+  const path = window.location.pathname;
+  if (path.includes('/views-3') || path.includes('/views-2') || path.includes('/views-1')) {
+    return VIEW_IDS[0] ?? 'Documents';
+  }
+  return 'Documents';
+}
+
 function App() {
   const [isGmailImportModalOpen, setIsGmailImportModalOpen] = useState(false);
   const [showGetStartedPage, setShowGetStartedPage] = useState(false);
@@ -21,7 +31,7 @@ function App() {
   const [importedOrganizationSettings, setImportedOrganizationSettings] = useState(null);
   const [currentTab, setCurrentTab] = useState('Recent');
   const [currentFolder, setCurrentFolder] = useState(null);
-  const [activePage, setActivePage] = useState('Documents');
+  const [activePage, setActivePage] = useState(() => getInitialActivePage());
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingDocument, setViewingDocument] = useState(null);
 
