@@ -27,7 +27,7 @@ git checkout -f "$ROOT_REF"
 
 echo "== Install & build main =="
 npm ci
-VITE_VIEW_VARIANT=main VITE_BASE_PATH=/CLM/ npm run build
+VITE_BASE_PATH=/CLM/ npm run build
 copy_views_proto dist
 
 VARIANTS=(views-1 views-2 views-3)
