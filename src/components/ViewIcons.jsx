@@ -108,9 +108,9 @@ const VIEW_ICON_MAP = {
   sales: ProposalsIcon,
   hr: ServiceAgreementsIcon,
   legal: ContractsIcon,
-  finance: InvoicesIcon,
+  finance: QuotesIcon,
   marketing: CollateralsIcon,
-  procurement: QuotesIcon,
+  procurement: InvoicesIcon,
 };
 
 export function ViewIcon({ viewId, active, className = 'w-5 h-5' }) {
