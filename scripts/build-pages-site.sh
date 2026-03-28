@@ -27,7 +27,7 @@ git checkout -f "$ROOT_REF"
 
 echo "== Install & build main =="
 npm ci
-VITE_BASE_PATH=/CLM/ npm run build
+VITE_VIEW_VARIANT=main VITE_BASE_PATH=/CLM/ npm run build
 copy_views_proto dist
 
 VARIANTS=(views-1 views-2 views-3)
@@ -44,7 +44,7 @@ for variant in "${VARIANTS[@]}"; do
   npm ci
   out="dist/${variant}"
   rm -rf "$out"
-  VITE_BASE_PATH="/CLM/${variant}/" npx vite build --outDir "$out"
+  VITE_VIEW_VARIANT="${variant}" VITE_BASE_PATH="/CLM/${variant}/" npx vite build --outDir "$out"
   copy_views_proto "$out"
 done
 
