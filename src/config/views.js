@@ -5,12 +5,29 @@
 //
 // View icons match Figma “Views” nav (file ev8QrglqV7b7BNYKSBUUrs, node 1878:22195): SVGs in public/view-icons/ (exported from Figma MCP assets).
 import { assetUrl } from '../utils/assetUrl';
+import { detectViewVariant } from './viewVariant';
 
 const viewIcon = (file) => assetUrl(`view-icons/${file}.svg`);
 
-export { DOCUMENT_TYPE_OPTIONS_BY_VIEW } from './documentTypeOptions';
+export {
+  DOCUMENT_TYPE_OPTIONS_BY_VIEW,
+  DOCUMENT_TYPE_OPTIONS_BY_TEAM,
+  getDocumentTypeOptionsForView,
+} from './documentTypeOptions';
 
-export const VIEW_CONFIG = {
+/** Matches keys from buildViews2Dataset() — no separate service-agreements / quotes / invoices nav */
+const VIEWS_2_NAV_IDS = ['contracts', 'proposals', 'ndas', 'forms', 'collaterals'];
+
+function buildViewConfig() {
+  const variant = detectViewVariant();
+  if (variant === 'views-3') return TEAM_VIEW_CONFIG;
+  if (variant === 'views-2') {
+    return Object.fromEntries(VIEWS_2_NAV_IDS.map((id) => [id, DOCUMENT_VIEW_CONFIG[id]]));
+  }
+  return DOCUMENT_VIEW_CONFIG;
+}
+
+const DOCUMENT_VIEW_CONFIG = {
   contracts: {
     title: 'Contracts',
     ctaLabel: 'Contract',
@@ -87,4 +104,58 @@ export const VIEW_CONFIG = {
   },
 };
 
+/** GitHub Pages /views-3/: team-based nav (sample data keys in VIEW_SAMPLE_DATA_TEAM) */
+const TEAM_VIEW_CONFIG = {
+  sales: {
+    title: 'Sales',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
+    iconSrc: viewIcon('proposals'),
+  },
+  hr: {
+    title: 'HR',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients'],
+    iconSrc: viewIcon('service-agreements'),
+  },
+  legal: {
+    title: 'Legal',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients'],
+    iconSrc: viewIcon('ndas'),
+  },
+  finance: {
+    title: 'Finance',
+    ctaLabel: 'Document',
+    filters: [
+      'Document Type',
+      'Date',
+      'Status',
+      'Payment status (Unpaid / Partially paid / Paid)',
+      'Due date',
+      'Date sent',
+    ],
+    filterIds: ['document-type', 'date', 'status', 'payment-status', 'due-date', 'date-sent'],
+    iconSrc: viewIcon('invoices'),
+  },
+  marketing: {
+    title: 'Marketing',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
+    iconSrc: viewIcon('collaterals'),
+  },
+  procurement: {
+    title: 'Procurement',
+    ctaLabel: 'Document',
+    filters: ['Document Type', 'Date', 'Status', 'Owner', 'Counterparty', 'Contract value'],
+    filterIds: ['document-type', 'date', 'status', 'owner', 'recipients', 'amount'],
+    iconSrc: viewIcon('contracts'),
+  },
+};
+
+export const VIEW_CONFIG = buildViewConfig();
 export const VIEW_IDS = Object.keys(VIEW_CONFIG);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FilterIcon, SparkleIcon, ChevronRightIcon } from './Icons';
 import DocumentsTable from './DocumentsTable';
-import { VIEW_CONFIG, DOCUMENT_TYPE_OPTIONS_BY_VIEW } from '../config/views';
+import { VIEW_CONFIG, getDocumentTypeOptionsForView } from '../config/views';
 import DocumentSplitButton from './DocumentSplitButton';
 
 const FILTERS_BTN_ON =
@@ -135,7 +135,7 @@ const ViewContent = ({
             visibleFilterIds={filterIds}
             filtersVisible={filtersVisible}
             viewId={viewId}
-            documentTypeOptions={DOCUMENT_TYPE_OPTIONS_BY_VIEW[viewId] ?? []}
+            documentTypeOptions={getDocumentTypeOptionsForView(viewId)}
           />
         )}
         {viewTab === 'Catalog' && (

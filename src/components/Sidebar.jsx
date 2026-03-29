@@ -250,7 +250,7 @@ const Sidebar = ({ activePage, onPageChange }) => {
           )}
 
           {/* Views — below top section; own More/Less */}
-          <div className="my-3 border-t border-thesis-border"></div>
+          <div className="mt-6 pt-2 mb-3 border-t border-thesis-border"></div>
           {viewsSlice.map((item) => (
             <button
               key={item.page}

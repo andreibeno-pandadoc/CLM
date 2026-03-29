@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DocumentPortraitIcon, ChevronDownIcon, ChevronRightIcon } from './Icons';
+import { DocumentPortraitIcon, ChevronRightIcon } from './Icons';
 import StatusLabel from './StatusLabel';
 import Avatar from './Avatar';
 import { organizeByYear, organizeByCompany, organizeByStatus } from '../data/mockGmailDocuments';
@@ -350,6 +350,12 @@ const DocumentsTable = ({
       if (!matches) return false;
     }
 
+    // Document type filter (matches each doc’s `documentType` to selected filter labels)
+    if (documentTypeFilter.length > 0) {
+      const dt = (doc.documentType || '').trim();
+      if (!dt || !documentTypeFilter.includes(dt)) return false;
+    }
+
     // Amount filter
     if (amountFilter && amountFilter.from !== null) {
       const docAmount = doc.amount ? parseFloat(doc.amount.replace(/[$,]/g, '')) : 0;
@@ -468,7 +474,6 @@ const DocumentsTable = ({
               <span className="text-13 font-graphik-regular text-secondary-dark truncate">
                 {doc.participants || doc.company}
               </span>
-              <ChevronDownIcon className="w-4 h-4 text-secondary-light flex-shrink-0" />
             </div>
           </div>
         </div>
@@ -793,17 +798,6 @@ const DocumentsTable = ({
           );
         })}
 
-        {viewId &&
-          !currentFolder &&
-          !autoRenewFilter &&
-          !(durationFilter.from !== '' || durationFilter.to !== '') &&
-          filteredFolders.length > 0 &&
-          filteredDocuments.length > 0 && (
-            <div className="h-9 flex items-center border-b border-thesis-border/80 bg-thesis-canvas/40 px-4">
-              <span className="text-14 font-graphik-semibold text-secondary-dark">Other documents</span>
-            </div>
-          )}
-
         {/* Folder drill-down: only these rows; indent so hierarchy is visible vs root list */}
         {currentFolder &&
           currentFolder.documents
@@ -841,7 +835,6 @@ const DocumentsTable = ({
                     <span className="text-13 font-graphik-regular text-secondary-dark truncate">
                       {doc.participants}
                     </span>
-                    <ChevronDownIcon className="w-4 h-4 text-secondary-light flex-shrink-0" />
                   </div>
                 </div>
               </div>
@@ -900,7 +893,6 @@ const DocumentsTable = ({
                     <span className="text-13 font-graphik-regular text-secondary-dark truncate">
                       {doc.participants}
                     </span>
-                    <ChevronDownIcon className="w-4 h-4 text-secondary-light flex-shrink-0" />
                   </div>
                 </div>
               </div>

@@ -9,22 +9,11 @@
  * - main: full document-type nav (contracts … collaterals)
  * - views-1: same data as main
  * - views-2: merged contracts + service agreements; proposals + quotes + invoices
- * - views-3: team-based nav (sales … procurement)
+ * - views-3: team-based nav (Sales, HR, Legal, …); VIEW_CONFIG switches via BASE_URL
  */
 import { VIEW_SAMPLE_DATA_MAIN, VIEW_SAMPLE_DATA_TEAM } from './viewSampleData.catalog';
 import { buildViews2Dataset } from './viewSampleData.mergeViews2';
-
-function detectViewVariant() {
-  const base = import.meta.env.BASE_URL || '';
-  if (base.includes('views-3')) return 'views-3';
-  if (base.includes('views-2')) return 'views-2';
-  if (base.includes('views-1')) return 'views-1';
-  const explicit = import.meta.env.VITE_VIEW_VARIANT;
-  if (explicit != null && String(explicit).trim() !== '') {
-    return String(explicit).trim();
-  }
-  return 'main';
-}
+import { detectViewVariant } from '../config/viewVariant';
 
 const VARIANT = detectViewVariant();
 
@@ -40,8 +29,7 @@ function resolveDataset() {
       cached = buildViews2Dataset(VIEW_SAMPLE_DATA_MAIN);
       break;
     case 'views-3':
-      // Team keys (sales, hr, …) plus document-type keys from main (contracts, …).
-      // TEAM alone has no `contracts` — nav still uses VIEW_CONFIG ids, so merge both.
+      // Nav uses team view ids only; merge keeps getViewSampleData(teamId) working alongside main keys if needed.
       cached = { ...VIEW_SAMPLE_DATA_MAIN, ...VIEW_SAMPLE_DATA_TEAM };
       break;
     case 'main':
