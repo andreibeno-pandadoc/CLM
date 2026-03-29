@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   WorkspaceIcon,
   HomeIcon,
@@ -77,47 +77,14 @@ const MoreDownIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-/** Matches app shell: collapse expanded nav (`<<`) */
-const DoubleChevronLeftIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden>
-    <path
-      d="M12 6l-3.5 4 3.5 4M7 6l-3.5 4 3.5 4"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-/** Expand secondary nav (`>>`) — same row as workspace when collapsed */
-const DoubleChevronRightIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden>
-    <path
-      d="M8 6l3.5 4-3.5 4M13 6l3.5 4-3.5 4"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-/** Default visible rows per nav section (Payments… / Views) before More */
+/** Default visible rows per section (top nav / Views) before More */
 const SECTION_VISIBLE_COUNT = 4;
 
 const Sidebar = ({ activePage, onPageChange }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  /** Secondary list (Payments… Dev Center): show only first N until More */
-  const [expandSecondaryNav, setExpandSecondaryNav] = useState(false);
-  /** Views list: show only first N until More */
+  /** Single top section: Home…Contacts + Payments…Dev Center — one More/Less */
+  const [expandTopNav, setExpandTopNav] = useState(false);
+  /** Views section — separate More/Less */
   const [expandViewsNav, setExpandViewsNav] = useState(false);
-
-  useEffect(() => {
-    if (!isExpanded) {
-      setExpandSecondaryNav(false);
-    }
-  }, [isExpanded]);
 
   const mainNavItems = [
     { icon: HomeIcon, label: 'Home', active: activePage === 'Home', page: 'Home' },
@@ -158,10 +125,12 @@ const Sidebar = ({ activePage, onPageChange }) => {
   const viewIconActiveFilter =
     'brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(500%) hue-rotate(130deg)';
 
-  const secondaryHasOverflow = expandedNavItems.length > SECTION_VISIBLE_COUNT;
-  const secondarySlice = expandSecondaryNav
-    ? expandedNavItems
-    : expandedNavItems.slice(0, SECTION_VISIBLE_COUNT);
+  const topNavItems = [
+    ...mainNavItems.map((item) => ({ ...item, kind: 'main' })),
+    ...expandedNavItems.map((item) => ({ ...item, kind: 'secondary' })),
+  ];
+  const topHasOverflow = topNavItems.length > SECTION_VISIBLE_COUNT;
+  const topSlice = expandTopNav ? topNavItems : topNavItems.slice(0, SECTION_VISIBLE_COUNT);
 
   const viewsHasOverflow = viewItems.length > SECTION_VISIBLE_COUNT;
   const viewsSlice = expandViewsNav ? viewItems : viewItems.slice(0, SECTION_VISIBLE_COUNT);
@@ -174,7 +143,7 @@ const Sidebar = ({ activePage, onPageChange }) => {
 
   return (
     <div className="w-full bg-transparent h-full flex flex-col">
-      {/* Workspace Header — double chevron toggles More/Less (matches app shell, not Views list) */}
+      {/* Workspace Header */}
       <div className="p-4 pb-6">
         <div className="flex items-center gap-1 min-w-0">
           <WorkspaceIcon />
@@ -189,20 +158,6 @@ const Sidebar = ({ activePage, onPageChange }) => {
             </div>
             <ChevronDownIcon className="w-3 h-3 text-secondary-light shrink-0 ml-1" />
           </div>
-          <button
-            type="button"
-            className="shrink-0 p-1.5 rounded-sm text-secondary-light hover:text-thesis-ink hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary/40"
-            onClick={() => setIsExpanded((v) => !v)}
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? 'Show fewer items in navigation' : 'Show more items in navigation'}
-            title={isExpanded ? 'Show less' : 'Show more'}
-          >
-            {isExpanded ? (
-              <DoubleChevronLeftIcon className="w-5 h-5" />
-            ) : (
-              <DoubleChevronRightIcon className="w-5 h-5" />
-            )}
-          </button>
         </div>
       </div>
 
@@ -221,32 +176,80 @@ const Sidebar = ({ activePage, onPageChange }) => {
       {/* Main Navigation */}
       <div className="flex-1 px-4 overflow-y-auto">
         <nav className="space-y-0">
-          {mainNavItems.map((item, index) => {
+          {/* Top section: Home…Contacts + Payments…Dev Center — one More/Less */}
+          {topSlice.map((item, index) => {
             const IconComponent = item.icon;
+            if (item.kind === 'main') {
+              return (
+                <button
+                  key={`top-main-${item.label}-${index}`}
+                  type="button"
+                  className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
+                    item.active
+                      ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
+                      : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+                  } ${item.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                  disabled={item.disabled}
+                  onClick={() => handleNavClick(item)}
+                >
+                  <IconComponent className={`w-5 h-5 mr-3 shrink-0 ${item.active ? 'text-brand-primary' : 'text-thesis-ink'}`} />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.hasChevron && (
+                    <ChevronDownIcon className="w-4 h-4 text-secondary-light" />
+                  )}
+                </button>
+              );
+            }
             return (
               <button
-                key={index}
+                key={`top-sec-${item.label}-${index}`}
                 type="button"
-                className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
-                  item.active
-                    ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
-                    : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
-                } ${item.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                className={`nav-item ${item.disabled ? 'cursor-not-allowed' : ''} ${item.active ? 'active' : ''}`}
+                style={item.active ? {
+                  backgroundColor: 'white',
+                  boxShadow: '0px 0px 1px 0px rgba(47,47,47,0.04), 0px 1px 4px 0px rgba(47,47,47,0.12)'
+                } : {}}
                 disabled={item.disabled}
-                onClick={() => handleNavClick(item)}
+                onClick={() => {
+                  if (!item.disabled && item.page && onPageChange) {
+                    onPageChange(item.page);
+                  }
+                }}
               >
-                <IconComponent className={`w-5 h-5 mr-3 shrink-0 ${item.active ? 'text-brand-primary' : 'text-thesis-ink'}`} />
-                <span className="flex-1 text-left">
-                  {item.label}
-                </span>
-                {item.hasChevron && (
-                  <ChevronDownIcon className="w-4 h-4 text-secondary-light" />
+                <IconComponent className={`w-5 h-5 mr-3 ${item.active ? 'text-brand-primary' : 'text-thesis-ink'}`} />
+                <span className="flex-1 text-left text-secondary-dark">{item.label}</span>
+                {item.beta && (
+                  <span className="text-9 font-graphik-semibold px-1.5 py-0.5 rounded text-secondary-light bg-thesis-chip">BETA</span>
                 )}
               </button>
             );
           })}
+          {topHasOverflow && !expandTopNav && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => setExpandTopNav(true)}
+              aria-expanded="false"
+              aria-label="Show more navigation items"
+            >
+              <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+              <span className="text-secondary-dark">More</span>
+            </button>
+          )}
+          {topHasOverflow && expandTopNav && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => setExpandTopNav(false)}
+              aria-expanded="true"
+              aria-label="Show fewer navigation items"
+            >
+              <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+              <span className="text-secondary-dark">Less</span>
+            </button>
+          )}
 
-          {/* Views — document-type shortcuts (above "More" so visible without scrolling) */}
+          {/* Views — below top section; own More/Less */}
           <div className="my-3 border-t border-thesis-border"></div>
           {viewsSlice.map((item) => (
             <button
@@ -280,6 +283,7 @@ const Sidebar = ({ activePage, onPageChange }) => {
               className="nav-item"
               onClick={() => setExpandViewsNav(true)}
               aria-expanded="false"
+              aria-label="Show more views"
             >
               <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
               <span className="text-secondary-dark">More</span>
@@ -291,86 +295,16 @@ const Sidebar = ({ activePage, onPageChange }) => {
               className="nav-item"
               onClick={() => setExpandViewsNav(false)}
               aria-expanded="true"
+              aria-label="Show fewer views"
             >
               <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
               <span className="text-secondary-dark">Less</span>
             </button>
           )}
-
-          {/* More/Less Toggle — expands Payments, Catalog, … */}
-          {!isExpanded ? (
-            <button
-              type="button"
-              className="nav-item"
-              onClick={() => setIsExpanded(true)}
-              aria-expanded="false"
-            >
-              <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-              <span className="text-secondary-dark">More</span>
-            </button>
-          ) : (
-            <>
-              {/* Divider */}
-              <div className="my-3 border-t border-thesis-border"></div>
-
-              {/* Secondary nav (Payments…): 4 by default, More / Less for the rest */}
-              {secondarySlice.map((item, index) => {
-                const IconComponent = item.icon;
-                return (
-                  <button
-                    key={`${item.label}-${index}`}
-                    type="button"
-                    className={`nav-item ${item.disabled ? 'cursor-not-allowed' : ''} ${item.active ? 'active' : ''}`}
-                    style={item.active ? {
-                      backgroundColor: 'white',
-                      boxShadow: '0px 0px 1px 0px rgba(47,47,47,0.04), 0px 1px 4px 0px rgba(47,47,47,0.12)'
-                    } : {}}
-                    disabled={item.disabled}
-                    onClick={() => {
-                      if (!item.disabled && item.page && onPageChange) {
-                        onPageChange(item.page);
-                      }
-                    }}
-                  >
-                    <IconComponent className={`w-5 h-5 mr-3 ${item.active ? 'text-brand-primary' : 'text-thesis-ink'}`} />
-                    <span className="flex-1 text-left text-secondary-dark">{item.label}</span>
-                    {item.beta && (
-                      <span className="text-9 font-graphik-semibold px-1.5 py-0.5 rounded text-secondary-light bg-thesis-chip">BETA</span>
-                    )}
-                  </button>
-                );
-              })}
-              {secondaryHasOverflow && !expandSecondaryNav && (
-                <button
-                  type="button"
-                  className="nav-item"
-                  onClick={() => setExpandSecondaryNav(true)}
-                  aria-expanded="false"
-                >
-                  <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                  <span className="text-secondary-dark">More</span>
-                </button>
-              )}
-              {secondaryHasOverflow && expandSecondaryNav && (
-                <button
-                  type="button"
-                  className="nav-item"
-                  onClick={() => setExpandSecondaryNav(false)}
-                  aria-expanded="true"
-                >
-                  <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                  <span className="text-secondary-dark">Less</span>
-                </button>
-              )}
-
-              {/* Divider before Extensions */}
-              <div className="my-3 border-t border-thesis-border"></div>
-            </>
-          )}
         </nav>
 
         {/* Extensions Section */}
-        <div className={isExpanded ? '' : 'mt-6'}>
+        <div className="mt-6">
           <button className="nav-item">
             <ExtensionsIcon className="w-5 h-5 mr-3 text-thesis-ink" />
             <span>Extensions</span>

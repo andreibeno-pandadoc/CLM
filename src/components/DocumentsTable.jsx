@@ -24,7 +24,6 @@ const DocumentsTable = ({
   viewId = null,
   documentTypeOptions = [],
 }) => {
-  const [expandedFolders, setExpandedFolders] = useState({});
   const [selectedItems, setSelectedItems] = useState(new Set());
   
   // Filter states
@@ -45,13 +44,6 @@ const DocumentsTable = ({
     setDocumentTypeFilter([]);
   }, [viewId]);
 
-  /** In document-type views, folder rows expand inline (default expanded); main Documents still drills into folder via onFolderClick. */
-  useEffect(() => {
-    if (viewId) setExpandedFolders({});
-  }, [viewId]);
-
-  const isViewFolderExpanded = (folderId) => expandedFolders[folderId] !== false;
-
   const toggleItemSelection = (itemId, e) => {
     e.stopPropagation();
     setSelectedItems(prev => {
@@ -69,12 +61,7 @@ const DocumentsTable = ({
 
   const handleFolderRowClick = (folder, e) => {
     e.stopPropagation();
-    if (viewId) {
-      setExpandedFolders((prev) => {
-        const expanded = prev[folder.id] !== false;
-        return { ...prev, [folder.id]: !expanded };
-      });
-    } else if (onFolderClick) {
+    if (onFolderClick) {
       onFolderClick(folder);
     }
   };
@@ -767,12 +754,15 @@ const DocumentsTable = ({
                       <path d="M2 20V4H10L12 6H22V20H2Z" fill="currentColor" className="text-secondary-light"/>
                     </svg>
                   </div>
-                  <div className="flex-1 pr-3 min-w-0">
-                    <div className="flex items-center gap-2.5">
+                  <div className="flex-1 pr-3 min-w-0 flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <h3 className="font-graphik-semibold text-14 text-secondary-dark truncate">
                         {folder.name}
                       </h3>
                     </div>
+                    {viewId && (
+                      <ChevronRightIcon className="w-4 h-4 text-secondary-light shrink-0" aria-hidden />
+                    )}
                   </div>
                 </div>
 
@@ -799,69 +789,26 @@ const DocumentsTable = ({
                 </div>
               </div>
 
-              {viewId &&
-                isViewFolderExpanded(folder.id) &&
-                folder.documents.map((doc) => renderDocumentRow(doc, 1))}
-
             </React.Fragment>
           );
         })}
 
-        {/* Show folder documents when in folder view */}
-        {currentFolder && currentFolder.documents.filter(filterBySearch).map((doc) => {
-          const selected = isItemSelected(doc.id);
-          return (
-            <div 
-              key={doc.id} 
-              className="group flex items-center h-17 border-b border-thesis-border/25 hover:bg-gray-25 transition-colors cursor-pointer"
-              onClick={() => onOpenDocument && onOpenDocument(doc)}
-            >
-              {/* Document Icon (becomes checkbox on hover or when selected) + Name Column */}
-              <div className="flex-1 min-w-0 flex items-center">
-                <div className="w-12 flex justify-center">
-                  <input 
-                    type="checkbox" 
-                    checked={selected}
-                    onChange={(e) => toggleItemSelection(doc.id, e)}
-                    onClick={(e) => e.stopPropagation()}
-                    className={`w-4 h-4 rounded border-thesis-border text-brand-primary focus:ring-brand-primary ${selected ? 'block' : 'hidden group-hover:block'}`}
-                  />
-                  <DocumentPortraitIcon className={`w-6 h-6 text-secondary-light ${selected ? 'hidden' : 'block group-hover:hidden'}`} />
-                </div>
-                <div className="flex-1 pr-3 min-w-0">
-                  <div className="flex items-center gap-2.5">
-                    <h3 className="font-graphik-semibold text-14 text-secondary-dark truncate">
-                      {doc.name}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-13 font-graphik-regular text-secondary-dark truncate">
-                      {doc.participants}
-                    </span>
-                    <ChevronDownIcon className="w-4 h-4 text-secondary-light flex-shrink-0" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-40 flex items-center">
-                <StatusLabel type={doc.status} />
-              </div>
-
-              <div className="w-32 flex items-center justify-end">
-                <span className="text-13 font-graphik-regular text-secondary-dark">
-                  {doc.amount || '\u00A0'}
-                </span>
-              </div>
-
-              <div className="w-40 flex items-center gap-2 ml-6">
-                <Avatar src={doc.avatar} alt="User avatar" size="sm" />
-                <span className="text-13 font-graphik-regular text-secondary-dark">
-                  {doc.created}
-                </span>
-              </div>
+        {viewId &&
+          !currentFolder &&
+          !autoRenewFilter &&
+          !(durationFilter.from !== '' || durationFilter.to !== '') &&
+          filteredFolders.length > 0 &&
+          filteredDocuments.length > 0 && (
+            <div className="h-9 flex items-center border-b border-thesis-border/80 bg-thesis-canvas/40 px-4">
+              <span className="text-14 font-graphik-semibold text-secondary-dark">Other documents</span>
             </div>
-          );
-        })}
+          )}
+
+        {/* Folder drill-down: only these rows; indent so hierarchy is visible vs root list */}
+        {currentFolder &&
+          currentFolder.documents
+            .filter(filterBySearch)
+            .map((doc) => renderDocumentRow(doc, viewId ? 2 : 1))}
 
         {/* Individual Documents (only show when not in folder view, not on Imported tab, and no autoRenew/duration filter) */}
         {currentTab !== 'Imported' && !currentFolder && !autoRenewFilter && !(durationFilter.from !== '' || durationFilter.to !== '') && filteredDocuments.map((doc) => {
