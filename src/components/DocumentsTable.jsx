@@ -45,12 +45,12 @@ const DocumentsTable = ({
     setDocumentTypeFilter([]);
   }, [viewId]);
 
-  const toggleFolder = (folderId) => {
-    setExpandedFolders(prev => ({
-      ...prev,
-      [folderId]: !prev[folderId]
-    }));
-  };
+  /** In document-type views, folder rows expand inline (default expanded); main Documents still drills into folder via onFolderClick. */
+  useEffect(() => {
+    if (viewId) setExpandedFolders({});
+  }, [viewId]);
+
+  const isViewFolderExpanded = (folderId) => expandedFolders[folderId] !== false;
 
   const toggleItemSelection = (itemId, e) => {
     e.stopPropagation();
@@ -69,7 +69,12 @@ const DocumentsTable = ({
 
   const handleFolderRowClick = (folder, e) => {
     e.stopPropagation();
-    if (onFolderClick) {
+    if (viewId) {
+      setExpandedFolders((prev) => {
+        const expanded = prev[folder.id] !== false;
+        return { ...prev, [folder.id]: !expanded };
+      });
+    } else if (onFolderClick) {
       onFolderClick(folder);
     }
   };
@@ -793,6 +798,10 @@ const DocumentsTable = ({
                   </span>
                 </div>
               </div>
+
+              {viewId &&
+                isViewFolderExpanded(folder.id) &&
+                folder.documents.map((doc) => renderDocumentRow(doc, 1))}
 
             </React.Fragment>
           );

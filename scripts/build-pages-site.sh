@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # One deployable site: main at /CLM/, variants at /CLM/views-1/ … /CLM/views-3/.
-# Site root always comes from origin/main (or origin/master); variants from their branches.
+#
+# All outputs are built from the SAME tree (origin/main). Variants differ only via
+# VITE_VIEW_VARIANT + VITE_BASE_PATH (see package.json build:views-*). Do NOT checkout
+# origin/views-* branches here — those branches were often stale and shipped old UI/data.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -22,32 +25,23 @@ else
   exit 1
 fi
 
-echo "== Site root from ${ROOT_REF} → /CLM/ =="
+echo "== Checkout ${ROOT_REF} (single source for all builds) =="
 git checkout -f "$ROOT_REF"
 
-echo "== Install & build main =="
+echo "== Install =="
 npm ci
+
+echo "== Build main → /CLM/ =="
 VITE_BASE_PATH=/CLM/ npm run build
 copy_views_proto dist
 
-VARIANTS=(views-1 views-2 views-3)
+echo "== Build views-1 → /CLM/views-1/ =="
+npm run build:views-1
 
-for variant in "${VARIANTS[@]}"; do
-  if ! git show-ref --verify --quiet "refs/remotes/origin/${variant}"; then
-    echo "warning: origin/${variant} missing — skip (create branch and push)"
-    continue
-  fi
+echo "== Build views-2 → /CLM/views-2/ =="
+npm run build:views-2
 
-  echo "== Build ${variant} from origin/${variant} → /CLM/${variant}/ =="
-  git checkout -f "origin/${variant}"
-
-  npm ci
-  out="dist/${variant}"
-  rm -rf "$out"
-  VITE_VIEW_VARIANT="${variant}" VITE_BASE_PATH="/CLM/${variant}/" npx vite build --outDir "$out"
-  copy_views_proto "$out"
-done
-
-git checkout -f "$ROOT_REF"
+echo "== Build views-3 → /CLM/views-3/ =="
+npm run build:views-3
 
 echo "== Done =="

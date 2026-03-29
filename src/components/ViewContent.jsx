@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FilterIcon, SparkleIcon, ChevronRightIcon } from './Icons';
+import React, { useState } from 'react';
+import { FilterIcon, SparkleIcon } from './Icons';
 import DocumentsTable from './DocumentsTable';
 import { VIEW_CONFIG, DOCUMENT_TYPE_OPTIONS_BY_VIEW } from '../config/views';
 import DocumentSplitButton from './DocumentSplitButton';
@@ -20,15 +20,10 @@ const ViewContent = ({
 }) => {
   const [viewTab, setViewTab] = useState('Documents');
   const [filtersVisible, setFiltersVisible] = useState(true);
-  const [currentFolder, setCurrentFolder] = useState(null);
   const config = VIEW_CONFIG[viewId];
   if (!config) return null;
 
   const { title, ctaLabel, filterIds = [] } = config;
-
-  useEffect(() => {
-    setCurrentFolder(null);
-  }, [viewId]);
 
   return (
     <div className="w-full min-h-full bg-white">
@@ -38,7 +33,7 @@ const ViewContent = ({
           <div className="flex items-center justify-between mb-6">
             <div className="flex-1">
               <h1 className="text-24 font-graphik-bold text-thesis-title leading-[29px] tracking-tight">
-                {currentFolder?.name ?? title}
+                {title}
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -59,24 +54,7 @@ const ViewContent = ({
             </div>
           </div>
 
-          {currentFolder && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentFolder(null)}
-                  className="text-14 font-graphik-regular text-secondary-light hover:text-brand-primary transition-colors"
-                >
-                  {title}
-                </button>
-                <ChevronRightIcon className="w-4 h-4 text-secondary-light" />
-                <span className="text-14 font-graphik-semibold text-secondary-dark">{currentFolder.name}</span>
-              </div>
-            </div>
-          )}
-
           {/* Tabs: Documents | Catalog - same style as base; extra spacing below tabs (match Documents tab) */}
-          {!currentFolder && (
           <div className="border-b border-thesis-border mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -119,14 +97,11 @@ const ViewContent = ({
               </div>
             </div>
           </div>
-          )}
         </div>
 
         {/* Same DocumentsTable as base with working FilterBar; view-specific filters and spacing above table */}
         {viewTab === 'Documents' && (
           <DocumentsTable
-            currentFolder={currentFolder}
-            onFolderClick={setCurrentFolder}
             importedDocuments={[]}
             importedOrganizationSettings={null}
             currentTab="All documents"

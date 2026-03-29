@@ -40,7 +40,9 @@ function resolveDataset() {
       cached = buildViews2Dataset(VIEW_SAMPLE_DATA_MAIN);
       break;
     case 'views-3':
-      cached = VIEW_SAMPLE_DATA_TEAM;
+      // Team keys (sales, hr, …) plus document-type keys from main (contracts, …).
+      // TEAM alone has no `contracts` — nav still uses VIEW_CONFIG ids, so merge both.
+      cached = { ...VIEW_SAMPLE_DATA_MAIN, ...VIEW_SAMPLE_DATA_TEAM };
       break;
     case 'main':
     default:

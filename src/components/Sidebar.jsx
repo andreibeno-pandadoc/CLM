@@ -246,7 +246,58 @@ const Sidebar = ({ activePage, onPageChange }) => {
             );
           })}
 
-          {/* More/Less Toggle */}
+          {/* Views — document-type shortcuts (above "More" so visible without scrolling) */}
+          <div className="my-3 border-t border-thesis-border"></div>
+          {viewsSlice.map((item) => (
+            <button
+              key={item.page}
+              type="button"
+              className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
+                item.active
+                  ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
+                  : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+              }`}
+              onClick={() => onPageChange && onPageChange(item.page)}
+            >
+              {item.iconSrc ? (
+                <img
+                  src={item.iconSrc}
+                  alt=""
+                  className="w-5 h-5 mr-3 object-contain shrink-0"
+                  style={item.active ? { filter: viewIconActiveFilter } : {}}
+                />
+              ) : (
+                <span className={item.active ? 'text-brand-primary' : 'text-secondary-dark'}>
+                  <ViewIcon viewId={item.page} active={item.active} className="w-5 h-5 mr-3" />
+                </span>
+              )}
+              <span className="flex-1 text-left">{item.label}</span>
+            </button>
+          ))}
+          {viewsHasOverflow && !expandViewsNav && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => setExpandViewsNav(true)}
+              aria-expanded="false"
+            >
+              <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+              <span className="text-secondary-dark">More</span>
+            </button>
+          )}
+          {viewsHasOverflow && expandViewsNav && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => setExpandViewsNav(false)}
+              aria-expanded="true"
+            >
+              <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+              <span className="text-secondary-dark">Less</span>
+            </button>
+          )}
+
+          {/* More/Less Toggle — expands Payments, Catalog, … */}
           {!isExpanded ? (
             <button
               type="button"
@@ -312,117 +363,11 @@ const Sidebar = ({ activePage, onPageChange }) => {
                 </button>
               )}
 
-              {/* Views section — same 4 + More / Less pattern */}
-              <div className="my-3 border-t border-thesis-border"></div>
-              {viewsSlice.map((item) => (
-                <button
-                  key={item.page}
-                  type="button"
-                  className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
-                    item.active
-                      ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
-                      : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
-                  }`}
-                  onClick={() => onPageChange && onPageChange(item.page)}
-                >
-                  {item.iconSrc ? (
-                    <img
-                      src={item.iconSrc}
-                      alt=""
-                      className="w-5 h-5 mr-3 object-contain shrink-0"
-                      style={item.active ? { filter: viewIconActiveFilter } : {}}
-                    />
-                  ) : (
-                    <span className={item.active ? 'text-brand-primary' : 'text-secondary-dark'}>
-                      <ViewIcon viewId={item.page} active={item.active} className="w-5 h-5 mr-3" />
-                    </span>
-                  )}
-                  <span className="flex-1 text-left">{item.label}</span>
-                </button>
-              ))}
-              {viewsHasOverflow && !expandViewsNav && (
-                <button
-                  type="button"
-                  className="nav-item"
-                  onClick={() => setExpandViewsNav(true)}
-                  aria-expanded="false"
-                >
-                  <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                  <span className="text-secondary-dark">More</span>
-                </button>
-              )}
-              {viewsHasOverflow && expandViewsNav && (
-                <button
-                  type="button"
-                  className="nav-item"
-                  onClick={() => setExpandViewsNav(false)}
-                  aria-expanded="true"
-                >
-                  <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                  <span className="text-secondary-dark">Less</span>
-                </button>
-              )}
-
               {/* Divider before Extensions */}
               <div className="my-3 border-t border-thesis-border"></div>
             </>
           )}
         </nav>
-
-        {/* Views when main nav is collapsed — same 4 + More / Less as in expanded mode */}
-        {!isExpanded && (
-          <>
-            <div className="my-3 border-t border-thesis-border"></div>
-            {viewsSlice.map((item) => (
-              <button
-                key={item.page}
-                type="button"
-                className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
-                  item.active
-                    ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
-                    : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
-                }`}
-                onClick={() => onPageChange && onPageChange(item.page)}
-              >
-                {item.iconSrc ? (
-                  <img
-                    src={item.iconSrc}
-                    alt=""
-                    className="w-5 h-5 mr-3 object-contain shrink-0"
-                    style={item.active ? { filter: viewIconActiveFilter } : {}}
-                  />
-                ) : (
-                  <span className={item.active ? 'text-brand-primary' : 'text-secondary-dark'}>
-                    <ViewIcon viewId={item.page} active={item.active} className="w-5 h-5 mr-3" />
-                  </span>
-                )}
-                <span className="flex-1 text-left">{item.label}</span>
-              </button>
-            ))}
-            {viewsHasOverflow && !expandViewsNav && (
-              <button
-                type="button"
-                className="nav-item"
-                onClick={() => setExpandViewsNav(true)}
-                aria-expanded="false"
-              >
-                <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                <span className="text-secondary-dark">More</span>
-              </button>
-            )}
-            {viewsHasOverflow && expandViewsNav && (
-              <button
-                type="button"
-                className="nav-item"
-                onClick={() => setExpandViewsNav(false)}
-                aria-expanded="true"
-              >
-                <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-                <span className="text-secondary-dark">Less</span>
-              </button>
-            )}
-          </>
-        )}
 
         {/* Extensions Section */}
         <div className={isExpanded ? '' : 'mt-6'}>

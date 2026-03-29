@@ -20,7 +20,7 @@
   }
 
   body {
-    @apply font-graphik-regular text-secondary-dark antialiased bg-thesis-canvas;
+    @apply font-graphik-regular text-secondary-dark antialiased bg-white;
   }
 
   /* Text size utilities matching Figma design */
