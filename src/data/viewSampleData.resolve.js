@@ -10,6 +10,7 @@
  * - views-1: same data as main
  * - views-2: merged contracts + service agreements; proposals + quotes + invoices
  * - views-3: team-based nav (Sales, HR, Legal, …); VIEW_CONFIG switches via BASE_URL
+ * - views-4: same data as views-1; Views live under Documents dropdown in the sidebar
  */
 import { VIEW_SAMPLE_DATA_MAIN, VIEW_SAMPLE_DATA_TEAM } from './viewSampleData.catalog';
 import { buildViews2Dataset } from './viewSampleData.mergeViews2';
@@ -23,6 +24,7 @@ function resolveDataset() {
   if (cached) return cached;
   switch (VARIANT) {
     case 'views-1':
+    case 'views-4':
       cached = VIEW_SAMPLE_DATA_MAIN;
       break;
     case 'views-2':

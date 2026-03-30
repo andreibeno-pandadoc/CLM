@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One deployable site: main at /CLM/, variants at /CLM/views-1/ … /CLM/views-3/.
+# One deployable site: main at /CLM/, variants at /CLM/views-1/ … /CLM/views-4/.
 #
 # All outputs are built from the SAME tree (origin/main). Variants differ only via
 # VITE_VIEW_VARIANT + VITE_BASE_PATH (see package.json build:views-*). Do NOT checkout
@@ -43,5 +43,8 @@ npm run build:views-2
 
 echo "== Build views-3 → /CLM/views-3/ =="
 npm run build:views-3
+
+echo "== Build views-4 → /CLM/views-4/ =="
+npm run build:views-4
 
 echo "== Done =="

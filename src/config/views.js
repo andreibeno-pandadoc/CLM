@@ -24,6 +24,7 @@ function buildViewConfig() {
   if (variant === 'views-2') {
     return Object.fromEntries(VIEWS_2_NAV_IDS.map((id) => [id, DOCUMENT_VIEW_CONFIG[id]]));
   }
+  // views-4, views-1, main: full document-type Views (views-4 nests them under Documents in the sidebar)
   return DOCUMENT_VIEW_CONFIG;
 }
 

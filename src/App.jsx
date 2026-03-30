@@ -13,11 +13,16 @@ import BulkImportPage from './components/BulkImportPage';
 import DocumentViewerPage from './components/DocumentViewerPage';
 import { VIEW_IDS } from './config/views';
 
-/** GitHub Pages variant builds live under /CLM/views-1/ … /views-3/; open the first View so sample data + ViewContent mount (not MainContent → Documents). */
+/** GitHub Pages variant builds live under /CLM/views-1/ … /views-4/; open the first View so sample data + ViewContent mount (not MainContent → Documents). */
 function getInitialActivePage() {
   if (typeof window === 'undefined') return 'Documents';
   const path = window.location.pathname;
-  if (path.includes('/views-3') || path.includes('/views-2') || path.includes('/views-1')) {
+  if (
+    path.includes('/views-3') ||
+    path.includes('/views-2') ||
+    path.includes('/views-1') ||
+    path.includes('/views-4')
+  ) {
     return VIEW_IDS[0] ?? 'Documents';
   }
   return 'Documents';

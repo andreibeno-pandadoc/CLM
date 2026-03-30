@@ -14,6 +14,7 @@ import {
   PlusIcon,
 } from './Icons';
 import { VIEW_CONFIG, VIEW_IDS } from '../config/views';
+import { detectViewVariant } from '../config/viewVariant';
 import { ViewIcon } from './ViewIcons';
 
 // Additional icons for expanded menu
@@ -81,10 +82,18 @@ const MoreDownIcon = ({ className = "w-5 h-5" }) => (
 const SECTION_VISIBLE_COUNT = 4;
 
 const Sidebar = ({ activePage, onPageChange }) => {
+  const isViews4 = detectViewVariant() === 'views-4';
+
   /** Single top section: Home…Contacts + Payments…Dev Center — one More/Less */
   const [expandTopNav, setExpandTopNav] = useState(false);
-  /** Views section — separate More/Less */
+  /** Views section — separate More/Less (hidden on views-4; views live under Documents) */
   const [expandViewsNav, setExpandViewsNav] = useState(false);
+  /** views-4: Documents parent accordion */
+  const [docsExpanded, setDocsExpanded] = useState(true);
+
+  const docTreeActive =
+    activePage === 'Documents' || (Array.isArray(VIEW_IDS) && VIEW_IDS.includes(activePage));
+  const documentsInFocus = isViews4 && docsExpanded && docTreeActive;
 
   const mainNavItems = [
     { icon: HomeIcon, label: 'Home', active: activePage === 'Home', page: 'Home' },
@@ -92,6 +101,22 @@ const Sidebar = ({ activePage, onPageChange }) => {
     { icon: TemplateIcon, label: 'Templates', active: activePage === 'Templates', page: 'Templates', hasChevron: true },
     { icon: ContactsIcon, label: 'Contacts', active: activePage === 'Contacts', page: 'Contacts' },
   ];
+
+  const mainNavEntries = isViews4
+    ? [
+        { icon: HomeIcon, label: 'Home', active: activePage === 'Home', page: 'Home', kind: 'main' },
+        { kind: 'documents-nested' },
+        {
+          icon: TemplateIcon,
+          label: 'Templates',
+          active: activePage === 'Templates',
+          page: 'Templates',
+          hasChevron: true,
+          kind: 'main',
+        },
+        { icon: ContactsIcon, label: 'Contacts', active: activePage === 'Contacts', page: 'Contacts', kind: 'main' },
+      ]
+    : mainNavItems.map((item) => ({ ...item, kind: 'main' }));
 
   const expandedNavItems = [
     { icon: PaymentsIcon, label: 'Payments', disabled: true },
@@ -126,7 +151,7 @@ const Sidebar = ({ activePage, onPageChange }) => {
     'brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(500%) hue-rotate(130deg)';
 
   const topNavItems = [
-    ...mainNavItems.map((item) => ({ ...item, kind: 'main' })),
+    ...mainNavEntries,
     ...expandedNavItems.map((item) => ({ ...item, kind: 'secondary' })),
   ];
   const topHasOverflow = topNavItems.length > SECTION_VISIBLE_COUNT;
@@ -178,6 +203,66 @@ const Sidebar = ({ activePage, onPageChange }) => {
         <nav className="space-y-0">
           {/* Top section: Home…Contacts + Payments…Dev Center — one More/Less */}
           {topSlice.map((item, index) => {
+            if (item.kind === 'documents-nested') {
+              return (
+                <div
+                  key="documents-nested"
+                  className={`mb-1 rounded-md transition-colors ${
+                    documentsInFocus ? 'bg-white p-1.5 shadow-subtle' : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    aria-expanded={docsExpanded}
+                    className={`flex h-9 w-full items-center rounded-sm px-3 text-14 transition-colors ${
+                      docTreeActive
+                        ? 'font-graphik-semibold text-brand-primary'
+                        : 'font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+                    }`}
+                    onClick={() => setDocsExpanded((v) => !v)}
+                  >
+                    <DocumentIcon
+                      className={`w-5 h-5 mr-3 shrink-0 ${docTreeActive ? 'text-brand-primary' : 'text-thesis-ink'}`}
+                    />
+                    <span className="flex-1 text-left">Documents</span>
+                    {docsExpanded ? (
+                      <ChevronUpIcon className="w-4 h-4 shrink-0 text-secondary-light" aria-hidden />
+                    ) : (
+                      <ChevronDownIcon className="w-4 h-4 shrink-0 text-secondary-light" aria-hidden />
+                    )}
+                  </button>
+                  {docsExpanded && (
+                    <div className="mt-0.5 space-y-0 pb-0.5 pl-2">
+                      <button
+                        type="button"
+                        className={`flex h-8 w-full items-center rounded-sm pl-6 pr-2 text-left text-14 transition-colors ${
+                          activePage === 'Documents'
+                            ? 'font-graphik-semibold text-secondary-dark bg-black/[0.04]'
+                            : 'font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+                        }`}
+                        onClick={() => onPageChange && onPageChange('Documents')}
+                      >
+                        All documents
+                      </button>
+                      {viewItems.map((v) => (
+                        <button
+                          key={v.page}
+                          type="button"
+                          className={`flex h-8 w-full items-center rounded-sm pl-6 pr-2 text-left text-14 transition-colors ${
+                            v.active
+                              ? 'font-graphik-semibold text-brand-primary'
+                              : 'font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+                          }`}
+                          onClick={() => onPageChange && onPageChange(v.page)}
+                        >
+                          {v.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
             const IconComponent = item.icon;
             if (item.kind === 'main') {
               return (
@@ -249,57 +334,61 @@ const Sidebar = ({ activePage, onPageChange }) => {
             </button>
           )}
 
-          {/* Views — below top section; own More/Less */}
-          <div className="mt-6 pt-2 mb-3 border-t border-thesis-border"></div>
-          {viewsSlice.map((item) => (
-            <button
-              key={item.page}
-              type="button"
-              className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
-                item.active
-                  ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
-                  : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
-              }`}
-              onClick={() => onPageChange && onPageChange(item.page)}
-            >
-              {item.iconSrc ? (
-                <img
-                  src={item.iconSrc}
-                  alt=""
-                  className="w-5 h-5 mr-3 object-contain shrink-0"
-                  style={item.active ? { filter: viewIconActiveFilter } : {}}
-                />
-              ) : (
-                <span className={item.active ? 'text-brand-primary' : 'text-secondary-dark'}>
-                  <ViewIcon viewId={item.page} active={item.active} className="w-5 h-5 mr-3" />
-                </span>
+          {/* Views — below top section (hidden when nested under Documents on views-4) */}
+          {!isViews4 && (
+            <>
+              <div className="mt-6 pt-2 mb-3 border-t border-thesis-border"></div>
+              {viewsSlice.map((item) => (
+                <button
+                  key={item.page}
+                  type="button"
+                  className={`flex h-9 items-center w-full text-14 transition-colors rounded-sm ${
+                    item.active
+                      ? 'pl-[13px] pr-4 border-l-[3px] border-brand-primary bg-white shadow-subtle font-graphik-semibold text-brand-primary'
+                      : 'px-4 border-l-[3px] border-transparent font-graphik-regular text-secondary-dark hover:bg-black/[0.04]'
+                  }`}
+                  onClick={() => onPageChange && onPageChange(item.page)}
+                >
+                  {item.iconSrc ? (
+                    <img
+                      src={item.iconSrc}
+                      alt=""
+                      className="w-5 h-5 mr-3 object-contain shrink-0"
+                      style={item.active ? { filter: viewIconActiveFilter } : {}}
+                    />
+                  ) : (
+                    <span className={item.active ? 'text-brand-primary' : 'text-secondary-dark'}>
+                      <ViewIcon viewId={item.page} active={item.active} className="w-5 h-5 mr-3" />
+                    </span>
+                  )}
+                  <span className="flex-1 text-left">{item.label}</span>
+                </button>
+              ))}
+              {viewsHasOverflow && !expandViewsNav && (
+                <button
+                  type="button"
+                  className="nav-item"
+                  onClick={() => setExpandViewsNav(true)}
+                  aria-expanded="false"
+                  aria-label="Show more views"
+                >
+                  <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+                  <span className="text-secondary-dark">More</span>
+                </button>
               )}
-              <span className="flex-1 text-left">{item.label}</span>
-            </button>
-          ))}
-          {viewsHasOverflow && !expandViewsNav && (
-            <button
-              type="button"
-              className="nav-item"
-              onClick={() => setExpandViewsNav(true)}
-              aria-expanded="false"
-              aria-label="Show more views"
-            >
-              <MoreDownIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-              <span className="text-secondary-dark">More</span>
-            </button>
-          )}
-          {viewsHasOverflow && expandViewsNav && (
-            <button
-              type="button"
-              className="nav-item"
-              onClick={() => setExpandViewsNav(false)}
-              aria-expanded="true"
-              aria-label="Show fewer views"
-            >
-              <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
-              <span className="text-secondary-dark">Less</span>
-            </button>
+              {viewsHasOverflow && expandViewsNav && (
+                <button
+                  type="button"
+                  className="nav-item"
+                  onClick={() => setExpandViewsNav(false)}
+                  aria-expanded="true"
+                  aria-label="Show fewer views"
+                >
+                  <ChevronUpIcon className="w-5 h-5 mr-3 text-thesis-ink" />
+                  <span className="text-secondary-dark">Less</span>
+                </button>
+              )}
+            </>
           )}
         </nav>
 
