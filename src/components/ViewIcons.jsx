@@ -87,8 +87,8 @@ const FormsViewIcon = ({ className = 'w-5 h-5', active }) => (
   </svg>
 );
 
-// Collaterals – document with + in corner (design: doc outline, + in square top-right)
-const CollateralsIcon = ({ className = 'w-5 h-5', active }) => (
+// Collateral – document with + in corner (design: doc outline, + in square top-right)
+const CollateralIcon = ({ className = 'w-5 h-5', active }) => (
   <svg className={`${iconClass} ${className}`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <path fillRule="evenodd" clipRule="evenodd" d="M5 4h14v16H5V4zm2 2v12h10V6H7z" fill="currentColor" />
     <path d="M15 6h2M16 5v2" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" fill="none" />
@@ -103,7 +103,7 @@ const VIEW_ICON_MAP = {
   ndas: NDAsIcon,
   invoices: InvoicesIcon,
   forms: FormsViewIcon,
-  collaterals: CollateralsIcon,
+  collaterals: CollateralIcon,
 };
 
 export function ViewIcon({ viewId, active, className = 'w-5 h-5' }) {

@@ -100,7 +100,7 @@ const FORM_SUBTYPES = [
   'Form',
 ];
 
-/** Collaterals — Nav B9; v4n B133–B134 */
+/** Collateral — Nav B9; v4n B133–B134 */
 const COLLATERAL_TYPES = ['Certificate & Credential', 'Informational & Promotional Material'];
 
 export const DOCUMENT_TYPE_OPTIONS_BY_VIEW = {

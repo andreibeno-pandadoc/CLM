@@ -3,7 +3,7 @@
 Interactive prototype for **Document type classification & Views**:
 
 - **Layout:** Proposals-style main content with Documents/Catalog tabs, hero card, and document table.
-- **Navigation:** Left sidebar with Views: Contracts, Service agreements, Proposals, Quotes, NDAs, Invoices, Collaterals.
+- **Navigation:** Left sidebar with Views: Contracts, Service agreements, Proposals, Quotes, NDAs, Invoices, Collateral.
 - **Filters:** Filter chips per view (toggle **Filters** next to the tabs row).
 
 **Live (GitHub Pages):**

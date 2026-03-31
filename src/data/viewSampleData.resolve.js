@@ -6,7 +6,7 @@
  *    production so the sample data always matches the deployed subpath.
  * 2. `VITE_VIEW_VARIANT` — used when `base` is `/` (local dev) or for explicit overrides.
  *
- * - main: full document-type nav (contracts … collaterals)
+ * - main: full document-type nav (contracts … Collateral)
  * - views-1: same data as main
  * - views-2: merged contracts + service agreements; proposals + quotes + invoices
  * - views-3: team-based nav (Sales, HR, Legal, …); VIEW_CONFIG switches via BASE_URL

@@ -97,7 +97,7 @@ const DOCUMENT_VIEW_CONFIG = {
     iconSrc: null, // not in that Figma frame; use ViewIcons.jsx
   },
   collaterals: {
-    title: 'Collaterals',
+    title: 'Collateral',
     ctaLabel: 'Collateral',
     filters: ['Document Type'],
     filterIds: ['document-type'],
